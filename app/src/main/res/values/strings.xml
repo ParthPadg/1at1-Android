@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">1at1</string>
+    <string name="app_name">1@1 Action</string>
+    <string name="notif_pref_title">To help you make the most impact, we’d like to send you two kinds of notifications:</string>
+    <string name="notif_pref_body">1. Countdown reminders up to the 1@1 action on Jan. 21.\n\n2. The 1@1 Action Plan after Jan. 21. Each week for a year, you’ll receive a 1-minute video of an easy action to take that, when multiplied by thousands of people, can create real change.</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+
 </resources>

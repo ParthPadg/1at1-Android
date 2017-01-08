@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="typeface" format="enum">
+        <enum name="font_helvetica_bold" value="0"/>
+        <enum name="font_helvetica_regular" value="1"/>
+        <enum name="font_futura_bold" value="2"/>
+        <enum name="font_futura_regular" value="3"/>
+    </attr>
+
+    <declare-styleable name="TypefaceTextView">
+        <attr name="typeface"/>
+    </declare-styleable>
+</resources>

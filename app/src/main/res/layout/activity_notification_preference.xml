@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/cobalt"
+    android:fillViewport="true"
+    tools:context="org.oneat1.android.ui.NotificationPreferenceActivity"
+    >
+
+    <RelativeLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <ImageView
+            android:id="@+id/notif_pref_hero"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginEnd="63dp"
+            android:layout_marginStart="63dp"
+            android:layout_marginTop="80dp"
+            tools:background="@color/tw__blue_default"
+            tools:layout_height="120dp"
+            />
+
+        <org.oneat1.android.util.TypefaceTextView
+            android:id="@+id/notif_pref_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/notif_pref_hero"
+            android:layout_centerHorizontal="true"
+            android:layout_marginEnd="30dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="30dp"
+            android:gravity="center"
+            android:text="@string/notif_pref_title"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            app:typeface="font_futura_bold"/>
+
+        <org.oneat1.android.util.TypefaceTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/notif_pref_title"
+            android:layout_marginEnd="30dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="20dp"
+            android:gravity="left"
+            android:text="@string/notif_pref_body"
+            android:textColor="@color/off_white"
+            android:textSize="12sp"
+            app:typeface="font_futura_regular"
+            />
+
+
+        <org.oneat1.android.util.TypefaceTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/notif_pref_button_positive"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="95dp"
+            android:text="How does that sound?"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            app:typeface="font_futura_bold"
+            />
+
+        <com.balysv.materialripple.MaterialRippleLayout
+            android:id="@+id/notif_pref_button_positive"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_above="@+id/notif_pref_button_negative"
+            android:layout_marginEnd="30dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="20dp"
+            app:mrl_rippleOverlay="true">
+
+            <org.oneat1.android.util.TypefaceTextView
+                android:id="@+id/notif_pref_button_positive_inner"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/cherryRed"
+                android:elevation="2dp"
+                android:gravity="center"
+                android:text="I'm in!"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                app:typeface="font_helvetica_regular"
+                />
+        </com.balysv.materialripple.MaterialRippleLayout>
+
+        <com.balysv.materialripple.MaterialRippleLayout
+            android:id="@+id/notif_pref_button_negative"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="30dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="0dp">
+
+            <org.oneat1.android.util.TypefaceTextView
+                android:id="@+id/notif_pref_button_negative_inner"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="No thanks"
+                android:textColor="@color/periwinkle"
+                android:textSize="12sp"
+                app:typeface="font_helvetica_regular"
+                />
+        </com.balysv.materialripple.MaterialRippleLayout>
+
+
+    </RelativeLayout>
+</ScrollView>

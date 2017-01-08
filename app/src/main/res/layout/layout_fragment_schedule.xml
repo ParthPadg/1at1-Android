@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/gray"
+            android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/schedule_taking_stand_background"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:background="@color/darkBlue"
+            android:orientation="vertical"
+            android:paddingTop="15dp">
+
+            <org.oneat1.android.util.TypefaceTextView
+                android:id="@+id/schedule_taking_stand_top"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/schedule_taking_stand_background"
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="30dp"
+                android:text="We’re taking a stand for women’s equality."
+                android:textColor="@android:color/white"
+                android:textSize="26sp"
+                app:typeface="font_futura_regular"/>
+
+            <org.oneat1.android.util.TypefaceTextView
+                android:id="@+id/schedule_taking_stand_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/schedule_taking_stand_top"
+                android:layout_marginBottom="30dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:text="Join us."
+                android:textColor="@android:color/white"
+                android:textSize="26sp"
+                app:typeface="font_futura_bold"/>
+
+        </LinearLayout>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <org.oneat1.android.util.TypefaceTextView
+                    android:id="@+id/schedule_datetime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="%1$s / %2$s"
+                    />
+
+                <org.oneat1.android.util.TypefaceTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rise for 1 minute of silence"
+                    />
+
+                <org.oneat1.android.util.TypefaceTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="We rise for our mothers, our sisters, our daughters and ourselves in one unifying action."
+                    />
+
+            </LinearLayout>
+
+        </android.support.v7.widget.CardView>
+
+    </LinearLayout>
+</ScrollView>

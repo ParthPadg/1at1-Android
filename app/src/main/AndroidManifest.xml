@@ -1,13 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest package="org.oneat1.android"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <service android:name=".fcm.OA1FCMListenerService">
+        <intent-filter>
+            <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+        </intent-filter>
+    </service>
+    <service android:name=".fcm.OA1InstanceIDService">
+        <intent-filter>
+            <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+        </intent-filter>
+    </service>
+
     <application
+        android:name=".OA1App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/TranslucentStatusbarTheme">
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="3053cedc4bf4e3d9a7deec788fe784cfa0024e61"/>
 
+        <activity
+            android:name=".ui.SplashActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:theme="@style/TranslucentStatusbarTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".ui.NotificationPreferenceActivity"/>
+        <activity android:name=".ui.MainActivity"/>
     </application>
 
 </manifest>

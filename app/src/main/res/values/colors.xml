@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="cobalt">#1E4892</color>
+    <color name="darkBlue">#081363</color>
+    <color name="cherryRed">#e40b14</color>
+    <color name="periwinkle">#86a7e2</color>
+    <color name="off_white">#d4d4d4</color>
+    <color name="tab_text_selected">#2e2e2e</color>
+    <color name="gray">#f1f1f1</color>
 </resources>

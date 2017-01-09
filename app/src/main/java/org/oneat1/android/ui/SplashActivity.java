@@ -24,10 +24,13 @@ public class SplashActivity extends Activity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         OA1App.getInstance().init();
-        if(Prefs.getNotificationPreference() == null){ //we haven't asked the user about notifications!
+        Boolean pref = Prefs.getNotificationPreference();
+        LOG.debug("checking notification preference; it's {}", pref);
+        if (pref == null) { //we haven't asked the user about notifications!
             startActivity(new Intent(this, NotificationPreferenceActivity.class));
-        }else{
+        } else {
             //go to main screen
+            startActivity(new Intent(this, MainActivity.class));
         }
 
     }

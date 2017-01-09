@@ -9,7 +9,6 @@ import android.support.design.widget.TabLayout;
 import android.support.design.widget.TabLayout.Tab;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 
 import org.oneat1.android.R;
 
@@ -21,7 +20,6 @@ import butterknife.ButterKnife;
  */
 
 public class MainActivity extends Activity {
-
 
     @BindView(R.id.main_tabs) TabLayout tabs;
     @BindView(R.id.main_viewpager) ViewPager viewpager;
@@ -35,6 +33,7 @@ public class MainActivity extends Activity {
         ButterKnife.bind(this);
 
         viewpager.setAdapter(pagerAdapter = new MainPagerAdapter(getFragmentManager()));
+        setupWithViewPager(tabs, viewpager);
     }
 
 
@@ -46,8 +45,15 @@ public class MainActivity extends Activity {
         populateTabs(tabs);
         pagerAdapter
               .registerDataSetObserver(new DataSetObserver() {  //in either case, we just blow away and re-populate the tabs.
-                  @Override public void onChanged() { populateTabs(tabs); }
-                  @Override public void onInvalidated() { populateTabs(tabs); }
+                  @Override
+                  public void onChanged() {
+                      populateTabs(tabs);
+                  }
+
+                  @Override
+                  public void onInvalidated() {
+                      populateTabs(tabs);
+                  }
               });
     }
 
@@ -63,21 +69,22 @@ public class MainActivity extends Activity {
     }
 
     static class MainPagerAdapter extends FragmentStatePagerAdapter {
-        private static final String[] TAB_TITLES = {"Home", "Live Video", "Follow"};
+        private static final String[] TAB_TITLES = {"Home", "Watch", "Follow"};
+
         public MainPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
         @Override
         public Fragment getItem(int position) {
-            switch(position){
-                case 0:
-                    return MainScheduleFragment.newInstance();
-                case 1:
+          /*  switch(position){
+                case 0:*/
+            return ScheduleFragment.newInstance();
+           /*     case 1:
                 case 2:
                 default:
                     return null; //TODO
-            }
+            }*/
         }
 
         @Override

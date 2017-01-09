@@ -3,23 +3,35 @@
               xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:layout_marginTop="26dp"
               android:orientation="vertical">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="26dp"
+        android:background="@color/darkBlue"
+        />
+
+    <android.support.design.widget.TabLayout
+        android:id="@+id/main_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:elevation="4dp"
+        app:tabBackground="@color/darkBlue"
+        app:tabIndicatorColor="@color/off_white"
+        app:tabIndicatorHeight="5dp"
+        />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/lightGray"
+        />
 
     <android.support.v4.view.ViewPager
         android:id="@+id/main_viewpager"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-        <android.support.design.widget.TabLayout
-            android:id="@+id/main_tabs"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="top"
-            android:elevation="4dp"
-            app:tabIndicatorColor="@color/cobalt"
-            app:tabIndicatorHeight="5dp"
-            />
     </android.support.v4.view.ViewPager>
 
 

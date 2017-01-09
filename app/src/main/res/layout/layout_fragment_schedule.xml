@@ -7,77 +7,199 @@
             android:orientation="vertical">
 
     <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="@color/darkBlue"
+        android:orientation="vertical"
+        android:paddingTop="15dp">
+
+        <org.oneat1.android.util.TypefaceTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="30dp"
+            android:text="We’re taking a stand for women’s equality."
+            android:textColor="@android:color/white"
+            android:textSize="26sp"
+            app:typeface="font_futura_regular"/>
+
+        <org.oneat1.android.util.TypefaceTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:text="Join us."
+            android:textColor="@android:color/white"
+            android:textSize="26sp"
+            app:typeface="font_futura_bold"/>
+
+    </LinearLayout>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        app:cardElevation="4dp"
+        >
 
         <LinearLayout
-            android:id="@+id/schedule_taking_stand_background"
             android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:background="@color/darkBlue"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:paddingTop="15dp">
+            android:paddingTop="20dp">
 
             <org.oneat1.android.util.TypefaceTextView
-                android:id="@+id/schedule_taking_stand_top"
-                android:layout_width="match_parent"
+                android:id="@+id/schedule_datetime"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignTop="@id/schedule_taking_stand_background"
-                android:layout_marginEnd="20dp"
                 android:layout_marginStart="20dp"
-                android:layout_marginTop="30dp"
-                android:text="We’re taking a stand for women’s equality."
-                android:textColor="@android:color/white"
-                android:textSize="26sp"
-                app:typeface="font_futura_regular"/>
+                android:text="@string/schedule_text"
+                android:textColor="@color/cherryRed"
+                android:textSize="20sp"
+                app:typeface="font_helvetica_bold"
+                />
 
             <org.oneat1.android.util.TypefaceTextView
-                android:id="@+id/schedule_taking_stand_bottom"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/schedule_taking_stand_top"
-                android:layout_marginBottom="30dp"
-                android:layout_marginEnd="20dp"
                 android:layout_marginStart="20dp"
-                android:text="Join us."
-                android:textColor="@android:color/white"
-                android:textSize="26sp"
-                app:typeface="font_futura_bold"/>
+                android:layout_marginTop="10dp"
+                android:text="We rise for our mothers, our sisters, our daughters and ourselves in one unifying action."
+                android:textColor="@color/darkGray"
+                android:textSize="14sp"
+                app:typeface="font_helvetica_regular"
+                />
+
+            <com.balysv.materialripple.MaterialRippleLayout
+                android:id="@+id/schedule_share"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="20dp"
+                android:background="@color/darkBlue"
+                app:mrl_rippleOverlay="true"
+                >
+
+                <org.oneat1.android.util.TypefaceTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Spread the word"
+                    android:textColor="@android:color/white"
+                    />
+
+            </com.balysv.materialripple.MaterialRippleLayout>
 
         </LinearLayout>
 
-        <android.support.v7.widget.CardView
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@android:color/white"
+        app:cardElevation="4dp">
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp">
+
+            <org.oneat1.android.util.TypefaceTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:text="Share how you're rising with #1at1action"
+                android:textColor="@color/cherryRed"
+                android:textSize="16sp"
+                app:typeface="font_helvetica_bold"
+                />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="44dp"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                android:weightSum="3">
 
-                <org.oneat1.android.util.TypefaceTextView
-                    android:id="@+id/schedule_datetime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="%1$s / %2$s"
-                    />
+                <com.balysv.materialripple.MaterialRippleLayout
+                    android:id="@+id/schedule_facebook"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    app:mrl_rippleOverlay="true">
 
-                <org.oneat1.android.util.TypefaceTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Rise for 1 minute of silence"
-                    />
+                    <org.oneat1.android.util.TypefaceTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/facebook"
+                        android:gravity="center"
+                        android:text="Facebook"
+                        android:textColor="@android:color/white"
+                        />
+                </com.balysv.materialripple.MaterialRippleLayout>
 
-                <org.oneat1.android.util.TypefaceTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="We rise for our mothers, our sisters, our daughters and ourselves in one unifying action."
-                    />
+                <com.balysv.materialripple.MaterialRippleLayout
+                    android:id="@+id/schedule_instagram"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    app:mrl_rippleOverlay="true">
+
+                    <org.oneat1.android.util.TypefaceTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@color/instagram"
+                        android:gravity="center"
+                        android:text="Instagram"
+                        android:textColor="@android:color/white"
+                        />
+                </com.balysv.materialripple.MaterialRippleLayout>
+
+                <com.balysv.materialripple.MaterialRippleLayout
+                    android:id="@+id/schedule_twitter"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    app:mrl_rippleOverlay="true">
+
+                    <org.oneat1.android.util.TypefaceTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@color/twitter"
+                        android:gravity="center"
+                        android:text="Twitter"
+                        android:textColor="@android:color/white"
+                        />
+                </com.balysv.materialripple.MaterialRippleLayout>
 
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+            <org.oneat1.android.util.TypefaceTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:autoLink="all"
+                android:linksClickable="true"
+                android:text="Check out 1@1.org for more information. Feedback or questions? Email info@1at1.org."
+                android:textColor="@color/darkGray"/>
 
-    </LinearLayout>
+        </LinearLayout>
+
+    </android.support.v7.widget.CardView>
+
+</LinearLayout>
 </ScrollView>

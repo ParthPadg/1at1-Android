@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.august.luna.ui.widgets.TypefaceTextView
+<org.oneat1.android.util.TypefaceTextView
     android:id="@android:id/text1"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:ellipsize="end"
     android:gravity="center"
-    android:textAllCaps="true"
     android:maxLines="1"
-    android:textColor="@drawable/custom_tab_colorlist"
+    android:textAllCaps="true"
+    android:textColor="@color/off_white"
     android:textSize="14sp"
     app:typeface="font_helvetica_bold"/>

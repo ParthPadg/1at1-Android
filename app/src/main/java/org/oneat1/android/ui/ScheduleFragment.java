@@ -1,6 +1,7 @@
 package org.oneat1.android.ui;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.SpannableStringBuilder;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.oneat1.android.R;
+import org.oneat1.android.util.OA1Util;
 import org.oneat1.android.util.TypefaceTextView;
 
 import java.text.SimpleDateFormat;
@@ -23,6 +25,7 @@ import java.util.TimeZone;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import butterknife.Unbinder;
 
 /**
  * Created by parthpadgaonkar on 1/4/17.
@@ -31,6 +34,7 @@ import butterknife.OnClick;
 public class ScheduleFragment extends Fragment {
 
     @BindView(R.id.schedule_datetime) TypefaceTextView scheduleDatetime;
+    private Unbinder unbinder;
 
     public static ScheduleFragment newInstance() {
         return new ScheduleFragment();
@@ -41,14 +45,15 @@ public class ScheduleFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.layout_fragment_schedule, container, false);
-        ButterKnife.bind(this, view);
+        unbinder = ButterKnife.bind(this, view);
         Calendar instance = GregorianCalendar.getInstance();
         instance.set(2017, 0, 21, 13, 0);
         instance.setTimeZone(TimeZone.getTimeZone("America/New_York"));
 
         SimpleDateFormat formatter = new SimpleDateFormat("MMM dd, yyyy / h:mm aa zzz", Locale.getDefault());
         formatter.setTimeZone(TimeZone.getDefault());
-        SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.schedule_text, formatter.format(new Date(instance.getTimeInMillis()))));
+        SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.schedule_text, formatter.format(new Date(instance
+                                                                                                                                  .getTimeInMillis()))));
         ssb.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.darkBlue)), 13, 15, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
         scheduleDatetime.setText(ssb);
         return view;
@@ -57,13 +62,12 @@ public class ScheduleFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        OA1Util.safeUnbind(unbinder);
     }
 
-    @OnClick({R.id.schedule_share, R.id.schedule_facebook, R.id.schedule_instagram, R.id.schedule_twitter})
-    public void onClick(View view) {
+    @OnClick({R.id.schedule_facebook, R.id.schedule_instagram, R.id.schedule_twitter})
+    void onClick(View view) {
         switch (view.getId()) {
-            case R.id.schedule_share:
-                break;
             case R.id.schedule_facebook:
                 break;
             case R.id.schedule_instagram:
@@ -71,5 +75,16 @@ public class ScheduleFragment extends Fragment {
             case R.id.schedule_twitter:
                 break;
         }
+    }
+
+    @OnClick(R.id.schedule_share)
+    void shareAppClick() {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_SUBJECT, "1@1 Action");
+        String extraText = "Check out the 1@1 action for national equality! 1at1.org \n\n"
+                            + "https://play.google.com/store/apps/details?id=org.oneat1.android";
+        intent.putExtra(Intent.EXTRA_TEXT, extraText);
+        startActivity(Intent.createChooser(intent, "Share 1@1 Action"));
     }
 }

@@ -6,5 +6,6 @@
     <string name="action_settings">Settings</string>
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="schedule_text">%1$s\nRise for 1 minute of silence</string>
+    <string name="watch_num_viewers">%1$s viewers</string>
 
 </resources>

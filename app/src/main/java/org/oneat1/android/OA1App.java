@@ -3,6 +3,7 @@ package org.oneat1.android;
 import android.app.Application;
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
@@ -25,6 +26,7 @@ public class OA1App extends Application {
     private final static Logger LOG = LoggerFactory.getLogger(OA1App.class);
 
     private static OA1App sInstance;
+    private static final Gson gson = new Gson();
 
     public static OA1App getInstance(){
         return sInstance;
@@ -46,6 +48,10 @@ public class OA1App extends Application {
 
         startFCM();
         OA1Font.init();
+    }
+
+    public Gson getGson(){
+        return gson;
     }
 
     private void configureLogging() {

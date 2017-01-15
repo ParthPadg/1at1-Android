@@ -42,7 +42,7 @@ public enum OA1Font {
 
     @NonNull
     public static Typeface get(@NonNull OA1Font font) {
-        Context context = OA1App.getInstance();
+        Context context = OA1App.getApp();
         if (context == null) {
             LOG.warn("Attempted to access fonts before initialization!");
             return Typeface.DEFAULT;

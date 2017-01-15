@@ -3,13 +3,15 @@
               xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              android:clipChildren="false"
+              android:clipToPadding="false"
               android:orientation="vertical">
 
     <View
         android:layout_width="match_parent"
         android:layout_height="26dp"
         android:background="@color/darkBlue"
-        />
+    />
 
     <android.support.design.widget.TabLayout
         android:id="@+id/main_tabs"
@@ -18,20 +20,22 @@
         android:layout_gravity="top"
         android:elevation="4dp"
         app:tabBackground="@color/darkBlue"
+        android:background="@color/darkBlue"
         app:tabIndicatorColor="@color/off_white"
         app:tabIndicatorHeight="5dp"
-        />
-
+    />
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/lightGray"
-        />
+        android:layout_height="1.5dp"
+        android:background="@color/tab_text_unselected_dark"
+    />
+
 
     <android.support.v4.view.ViewPager
         android:id="@+id/main_viewpager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+    >
     </android.support.v4.view.ViewPager>
 
 

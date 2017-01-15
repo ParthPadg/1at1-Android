@@ -2,14 +2,18 @@ package org.oneat1.android.ui;
 
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.PowerManager;
 import android.support.annotation.Nullable;
+import android.support.annotation.UiThread;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
@@ -18,17 +22,23 @@ import com.google.android.youtube.player.YouTubePlayer.Provider;
 import com.google.android.youtube.player.YouTubePlayerFragment;
 import com.google.gson.Gson;
 
+import org.oneat1.android.BuildConfig;
 import org.oneat1.android.OA1App;
 import org.oneat1.android.R;
 import org.oneat1.android.model.youtube.YTItem;
 import org.oneat1.android.model.youtube.YTResponseBody;
 import org.oneat1.android.util.OA1Config;
 import org.oneat1.android.util.OA1Util;
+import org.oneat1.android.util.OA1Util.ThreadUtil;
 import org.oneat1.android.util.TypefaceTextView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.KeyStore.CallbackHandlerProtection;
+import java.text.NumberFormat;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -37,22 +47,37 @@ import butterknife.Unbinder;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.Request.Builder;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.logging.HttpLoggingInterceptor.Level;
 
 /**
  * Created by parthpadgaonkar on 1/8/17.
  */
-public class WatchVideoFragment extends Fragment implements Callback, OnInitializedListener {
+public class WatchVideoFragment extends Fragment implements OnInitializedListener {
     private final static Logger LOG = LoggerFactory.getLogger(WatchVideoFragment.class);
+    private static final long UPDATE_THRESHOLD = TimeUnit.MINUTES.toMillis(2);
+    private static final Uri.Builder BASE_URL = Uri.parse("https://www.googleapis.com/youtube/v3/videos")
+                                                      .buildUpon()
+                                                      .appendQueryParameter("part", "snippet, statistics, liveStreamingDetails");
+    private static final Uri.Builder UPDATE_URL = Uri.parse("https://www.googleapis.com/youtube/v3/videos")
+                                                      .buildUpon()
+                                                      .appendQueryParameter("part", "liveStreamingDetails");
+    private static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
+                                                          .addInterceptor(new HttpLoggingInterceptor().setLevel(Level.BASIC))
+                                                          .build();
 
-    @BindView(R.id.watch_fragment) FrameLayout videoFragment;
     @BindView(R.id.watch_title) TypefaceTextView videoTitle;
     @BindView(R.id.watch_viewercount) TypefaceTextView videoViewCount;
 
     private Unbinder unbinder;
-    private String videoID = "gymPFiPE88I";
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private String videoID = BuildConfig.DEBUG
+                                   ? "SF7FUU7CThs" //eagle video
+                                   : null;
 
     public static WatchVideoFragment createInstance() {
         return new WatchVideoFragment();
@@ -64,15 +89,14 @@ public class WatchVideoFragment extends Fragment implements Callback, OnInitiali
         View view = inflater.inflate(R.layout.fragment_video_watch, container, false);
         unbinder = ButterKnife.bind(this, view);
 
-        YouTubePlayerFragment frag = YouTubePlayerFragment.newInstance();
-        getChildFragmentManager()
-              .beginTransaction()
-              .replace(videoFragment.getId(), frag)
-              .commit();
-        frag.initialize(OA1Config.getInstance(getActivity()).getYoutubeAPIKey(), this);
+        YouTubePlayerFragment f = (YouTubePlayerFragment) getChildFragmentManager().findFragmentById(R.id.watch_fragment);
+        if (f != null) { //if this is null, we're *so* boned...
+            f.initialize(OA1Config.getInstance(getActivity()).getYoutubeAPIKey(), this);
+        }
 
-        getVideoInfo(videoID); //eagle video
+        handler.postDelayed(updateRunnable, UPDATE_THRESHOLD + 50L);
 
+        getVideoInfo(videoID);
 
         return view;
     }
@@ -85,73 +109,50 @@ public class WatchVideoFragment extends Fragment implements Callback, OnInitiali
 
     @OnClick(R.id.watch_share)
     void onShareClick() {
-
+        Intent share = new Intent(Intent.ACTION_SEND)
+                              .setType("text/plain")
+                              .putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=" + videoID)
+                              .putExtra(Intent.EXTRA_SUBJECT, "Check out the 1@1 action for national equality!");
+        startActivity(share);
     }
 
     private void getVideoInfo(String id) {
-        String url = Uri.parse("https://www.googleapis.com/youtube/v3/videos")
-                           .buildUpon()
-                           .appendQueryParameter("part", "snippet, statistics")
-                           .appendQueryParameter("id", id)
+        String url = BASE_URL.appendQueryParameter("id", id)
                            .appendQueryParameter("key", OA1Config.getInstance(getActivity()).getYoutubeAPIKey())
                            .toString();// equivalent of .build().toString();
-        OkHttpClient client = new OkHttpClient();
-        client.newCall(new Builder()
-                             .url(url)
-                             .get()
-                             .build())
-              .enqueue(this);
+        HTTP_CLIENT.newCall(new Builder().url(url).build())
+              .enqueue(new BaseCallback());
     }
 
-    private void bindResponseToView(YTResponseBody response) {
-        if (response.items != null && response.items.size() > 0) {
-            YTItem videoItem = response.items.get(0); //blindly take first item
-            if (videoItem.snippet != null && !TextUtils.isEmpty(videoItem.snippet.title)) {
-                videoTitle.setText(videoItem.snippet.title);
-            } else {
-                videoTitle.setText("<Unknown Video Title>");
-            }
+    private final Runnable updateRunnable = new Runnable() {
+        @Override
+        public void run() {
+            LOG.debug("requesting live video update...");
+            String url = UPDATE_URL
+                               .appendQueryParameter("id", videoID)
+                               .appendQueryParameter("key", OA1Config.getInstance(getActivity()).getYoutubeAPIKey())
+                               .toString();
 
-            if (videoItem.snippet != null && !TextUtils.isEmpty(videoItem.statistics.viewCount)) {
-                videoViewCount.setText(getString(R.string.watch_num_viewers, videoItem.statistics.viewCount));
-            }
+            HTTP_CLIENT.newCall(new Request.Builder().url(url).build())
+                  .enqueue(new UpdateCallback());
         }
-    }
-
-    //OKHTTP callback
-    @Override
-    public void onResponse(Call call, Response response) {
-        if (response.isSuccessful()) {
-            LOG.debug("successfully obtained Youtube data - parsing now!");
-            try (ResponseBody body = response.body()) {
-                Gson gson = OA1App.getInstance().getGson();
-                YTResponseBody ytBody = gson.fromJson(body.charStream(), YTResponseBody.class);
-                if(ytBody !=null) {
-                    bindResponseToView(ytBody);
-                }
-            } catch (Exception e) {
-                LOG.error("Error completing Youtube data call - ", e);
-            }
-        }
-    }
-
-    //OKHTTP callback
-    @Override
-    public void onFailure(Call call, IOException e) {
-        //TODO
-    }
+    };
 
     //Youtube callback
     @Override
     public void onInitializationSuccess(Provider provider, YouTubePlayer player, boolean wasRestored) {
-        if(!wasRestored){
+        LOG.debug("YOUTUBE player successful init");
+        if (!wasRestored) {
             player.cueVideo(videoID);
+            LOG.debug("queueing video ID {}", videoID);
         }
     }
 
     //Youtube callback
     @Override
     public void onInitializationFailure(Provider provider, YouTubeInitializationResult errorReason) {
+        LOG.error("Error initializing Youtube client: {}", errorReason);
+        if(getActivity() == null) return;
         if (errorReason.isUserRecoverableError()) {
             errorReason.getErrorDialog(getActivity(), 19181).show();
         } else {
@@ -161,4 +162,126 @@ public class WatchVideoFragment extends Fragment implements Callback, OnInitiali
                   .show();
         }
     }
+
+    private void bindResponseToView(YTResponseBody response) {
+        String title = null;
+        String viewers = null;
+        String liveViewers = null;
+        if (response.items != null && response.items.size() > 0) {
+            YTItem videoItem = response.items.get(0); //blindly take first item; ideally, there should only be one anyway
+            if (videoItem.snippet != null && !TextUtils.isEmpty(videoItem.snippet.title)) {
+                title = videoItem.snippet.title;
+            }
+
+            if (videoItem.snippet != null) {
+                NumberFormat numFormat = NumberFormat.getNumberInstance();
+                if (!TextUtils.isEmpty(videoItem.statistics.viewCount)) {
+                    Number viewCount;
+                    try {
+                        viewCount = Long.parseLong(videoItem.statistics.viewCount);
+                    } catch (Exception e) {
+                        LOG.error("Error parsing {} to long - retrying as BigInt", videoItem.statistics.viewCount, e);
+                        viewCount = new BigInteger(videoItem.statistics.viewCount);
+                    }
+                    viewers = numFormat.format(viewCount);
+                }
+                if (videoItem.snippet.isLivestream()
+                          && videoItem.liveStreamingDetails != null
+                          && !TextUtils.isEmpty(videoItem.liveStreamingDetails.concurrentViewers)) {
+                    Number liveCount;
+                    try {
+                        liveCount = Long.parseLong(videoItem.liveStreamingDetails.concurrentViewers);
+                    } catch (Exception e) {
+                        LOG.error("Error parsing {} to long - retrying as BigInt", videoItem.statistics.viewCount, e);
+                        liveCount = new BigInteger(videoItem.statistics.viewCount);
+                    }
+                    liveViewers = numFormat.format(liveCount);
+                }
+            }
+        }
+
+        if (TextUtils.isEmpty(title)) {
+            title = "<Unknown Title>";
+        }
+        if (TextUtils.isEmpty(viewers)) {
+            viewers = "0";
+        }
+
+        videoTitle.setText(title);
+        if (liveViewers == null) {
+            videoViewCount.setText(getString(R.string.watch_num_viewers, viewers));
+        } else {
+            videoViewCount.setText(getString(R.string.watch_num_viewers_live, viewers, liveViewers));
+        }
+    }
+
+    private void bindUpdateResponseToView(YTResponseBody response) {
+        if (response.items != null && response.items.size() > 0) {
+            YTItem videoItem = response.items.get(0);
+
+            if (videoItem.liveStreamingDetails != null
+                      && !TextUtils.isEmpty(videoItem.liveStreamingDetails.concurrentViewers)) {
+                Number liveCount;
+                try {
+                    liveCount = Long.parseLong(videoItem.liveStreamingDetails.concurrentViewers);
+                } catch (Exception e) {
+                    LOG.error("Error parsing {} to long - retrying as BigInt", videoItem.statistics.viewCount, e);
+                    liveCount = new BigInteger(videoItem.statistics.viewCount);
+                }
+                NumberFormat numFormat = NumberFormat.getNumberInstance();
+
+                String current = videoViewCount.getText().toString();
+                int idx = current.indexOf(" viewers");
+                if(idx > -1){
+                    String totalCount = current.substring(0, idx);
+                    String liveViewers = numFormat.format(liveCount);
+                    videoViewCount.setText(getString(R.string.watch_num_viewers_live, totalCount, liveViewers));
+                    handler.postDelayed(updateRunnable, UPDATE_THRESHOLD + 50L); // only request another update if we got Live Video info
+                }
+            }
+        }
+    }
+
+    private class BaseCallback implements Callback{
+
+        @Override
+        public void onFailure(Call call, IOException e) {
+            LOG.error("Error getting Youtube video data for {}", videoID, e);
+        }
+
+        @Override
+        public void onResponse(Call call, Response response) throws IOException {
+            if (response.isSuccessful()) {
+                LOG.debug("successfully obtained Youtube data");
+                try (ResponseBody body = response.body()) {
+                    Gson gson = OA1App.getApp().getGson();
+                    final YTResponseBody ytBody = gson.fromJson(body.charStream(), YTResponseBody.class);
+                    body.close();
+                    if (ytBody != null) {
+                        ThreadUtil.getInstance().runOnUIThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                onResponseParsed(ytBody);
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    LOG.error("Error completing Youtube data call - ", e);
+                }
+            }
+        }
+
+        @UiThread
+        void onResponseParsed(final YTResponseBody response) {
+            bindResponseToView(response);
+        }
+    }
+
+    private class UpdateCallback extends BaseCallback{
+        @Override
+        void onResponseParsed(YTResponseBody response) {
+            bindUpdateResponseToView(response);
+        }
+    }
+
 }

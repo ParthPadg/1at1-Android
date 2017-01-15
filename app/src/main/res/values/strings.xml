@@ -7,5 +7,6 @@
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="schedule_text">%1$s\nRise for 1 minute of silence</string>
     <string name="watch_num_viewers">%1$s viewers</string>
+    <string name="watch_num_viewers_live">%1$s viewers | %2$s watching now</string>
 
 </resources>

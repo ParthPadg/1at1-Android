@@ -6,10 +6,10 @@
     <color name="periwinkle">#86a7e2</color>
     <color name="off_white">#d4d4d4</color>
     <color name="tab_text_selected">#2e2e2e</color>
+    <color name="tab_text_unselected_dark">#5f649d</color>
     <color name="gray">#f1f1f1</color>
     <color name="darkGray">#4d4d4d</color>
     <color name="facebook">#3b5998</color>
     <color name="instagram">#e5445b</color>
     <color name="twitter">#1da1f2</color>
-    <color name="lightGray">#d4d4d4</color>
 </resources>

@@ -77,14 +77,14 @@ public class MainActivity extends Activity {
 
         @Override
         public Fragment getItem(int position) {
-          /*  switch(position){
-                case 0:*/
-            return ScheduleFragment.newInstance();
-           /*     case 1:
-                case 2:
+
+            switch (position) {
+                case 0:
                 default:
-                    return null; //TODO
-            }*/
+                    return ScheduleFragment.newInstance();
+                case 1:
+                    return WatchVideoFragment.createInstance();
+            }
         }
 
         @Override

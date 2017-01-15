@@ -10,6 +10,6 @@
     android:gravity="center"
     android:maxLines="1"
     android:textAllCaps="true"
-    android:textColor="@color/off_white"
+    android:textColor="@drawable/custom_tab_colorlist_dark"
     android:textSize="14sp"
     app:typeface="font_helvetica_bold"/>

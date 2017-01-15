@@ -25,6 +25,8 @@ public class NotificationPreferenceActivity extends Activity {
     @OnClick({R.id.notif_pref_button_positive, R.id.notif_pref_button_negative})
     void onButtonsClick(View view) {
         Prefs.setNotificationPreference(view.getId() == R.id.notif_pref_button_positive_inner);
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 
     @OnLongClick(R.id.notif_pref_button_negative)

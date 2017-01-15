@@ -24,11 +24,11 @@ import io.fabric.sdk.android.Fabric;
 
 public class OA1App extends Application {
     private final static Logger LOG = LoggerFactory.getLogger(OA1App.class);
+    private static final Gson GSON = new Gson();
 
     private static OA1App sInstance;
-    private static final Gson gson = new Gson();
 
-    public static OA1App getInstance(){
+    public static OA1App getApp(){
         return sInstance;
     }
 
@@ -51,7 +51,7 @@ public class OA1App extends Application {
     }
 
     public Gson getGson(){
-        return gson;
+        return GSON;
     }
 
     private void configureLogging() {

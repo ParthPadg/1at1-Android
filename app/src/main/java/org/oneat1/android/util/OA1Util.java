@@ -19,8 +19,7 @@ import butterknife.Unbinder;
 public class OA1Util {
 
     public static void safeUnbind(Unbinder unbinder) {
-        if (unbinder == null) return;
-        else {
+        if (unbinder != null) {
             try {
                 unbinder.unbind();
             } catch (Exception e) {

@@ -19,7 +19,6 @@ import com.google.android.youtube.player.YouTubePlayer.Provider;
 import com.google.android.youtube.player.YouTubePlayerFragment;
 import com.google.gson.Gson;
 
-import org.oneat1.android.BuildConfig;
 import org.oneat1.android.OA1App;
 import org.oneat1.android.R;
 import org.oneat1.android.firebase.RemoteConfigHelper;
@@ -190,7 +189,6 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     private void bindResponseToView(YTResponseBody response) {
         String title = null;
         String viewers = null;
-        String liveViewers = null;
         responseBody = response;
         if (response.items != null && response.items.size() > 0) {
             YTItem videoItem = response.items.get(0); //blindly take first item; ideally, there should only be one anyway
@@ -223,11 +221,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         }
 
         videoTitle.setText(title);
-        if (liveViewers == null) {
-            videoViewCount.setText(getString(R.string.watch_num_viewers, viewers));
-        } else {
-            videoViewCount.setText(getString(R.string.watch_num_viewers_live, viewers, liveViewers));
-        }
+        videoViewCount.setText(getString(R.string.watch_num_viewers, viewers));
     }
 
     private class BaseCallback implements Callback{

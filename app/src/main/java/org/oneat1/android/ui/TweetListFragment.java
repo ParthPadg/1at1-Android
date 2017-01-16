@@ -68,7 +68,7 @@ public class TweetListFragment extends Fragment {
         OA1Util.safeUnbind(unbinder);
     }
 
-    class RefreshManager extends Callback<TimelineResult<Tweet>> implements OnRefreshListener {
+    private class RefreshManager extends Callback<TimelineResult<Tweet>> implements OnRefreshListener {
 
         @Override
         public void onRefresh() {

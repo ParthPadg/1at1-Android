@@ -1,7 +1,5 @@
 package org.oneat1.android.model.youtube;
 
-import android.text.TextUtils;
-
 /**
  * Created by parthpadgaonkar on 1/8/17.
  */

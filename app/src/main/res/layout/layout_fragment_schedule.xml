@@ -131,7 +131,7 @@
                     android:layout_height="44dp"
                     android:layout_marginTop="20dp"
                     android:orientation="horizontal"
-                    android:weightSum="3">
+                    android:weightSum="3" android:baselineAligned="false">
 
                     <com.balysv.materialripple.MaterialRippleLayout
                         android:id="@+id/schedule_facebook"

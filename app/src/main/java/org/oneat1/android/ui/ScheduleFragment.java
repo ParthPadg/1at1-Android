@@ -1,6 +1,5 @@
 package org.oneat1.android.ui;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;

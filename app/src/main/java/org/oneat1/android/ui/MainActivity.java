@@ -8,9 +8,8 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TabLayout.Tab;
 import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
-
-import com.twitter.sdk.android.tweetui.TwitterListTimeline;
 
 import org.oneat1.android.R;
 
@@ -20,7 +19,6 @@ import butterknife.ButterKnife;
 /**
  * Created by parthpadgaonkar on 1/4/17.
  */
-
 public class MainActivity extends Activity {
 
     @BindView(R.id.main_tabs) TabLayout tabs;

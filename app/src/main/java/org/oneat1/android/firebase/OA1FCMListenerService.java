@@ -1,4 +1,4 @@
-package org.oneat1.android.fcm;
+package org.oneat1.android.firebase;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;

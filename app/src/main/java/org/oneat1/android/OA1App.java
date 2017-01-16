@@ -1,21 +1,29 @@
 package org.oneat1.android;
 
 import android.app.Application;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.gson.Gson;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
+import org.oneat1.android.firebase.RemoteConfigHelper;
+import org.oneat1.android.firebase.RemoteConfigHelper.CompletionListener;
 import org.oneat1.android.util.OA1Config;
 import org.oneat1.android.util.OA1Font;
 import org.oneat1.android.util.Prefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
+
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.android.LogcatAppender;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.filter.ThresholdFilter;
 import io.fabric.sdk.android.Fabric;
 
 /**
@@ -46,7 +54,7 @@ public class OA1App extends Application {
         OA1Config config = OA1Config.getInstance(this);
         initFabric(config);
 
-        startFCM();
+        initFirebase();
         OA1Font.init();
     }
 
@@ -69,6 +77,10 @@ public class OA1App extends Application {
         LogcatAppender logcatAppender = new LogcatAppender();
         logcatAppender.setContext(loggerContext);
         logcatAppender.setEncoder(logcatEncoder);
+
+        ThresholdFilter filter = new ThresholdFilter();
+        filter.setLevel((BuildConfig.DEBUG ? Level.ALL : Level.WARN).levelStr);
+        logcatAppender.addFilter(filter);
         logcatAppender.start();
         rootLogger.addAppender(logcatAppender);
 
@@ -76,11 +88,18 @@ public class OA1App extends Application {
         LOG.warn("This is the first log message after the app starts up! App Version: {}", BuildConfig.VERSION_NAME);
     }
 
-    private void startFCM() {
-        LOG.debug("Initializing Firebase Cloud Messaging");
-        //TODO check Play services
-        //todo start FCM
-
+    private void initFirebase() {
+        RemoteConfigHelper.get()
+              .fetch(true, new CompletionListener() {
+                  @Override
+                  public void onComplete(boolean wasSuccessful, @Nullable String youtubeID) {
+                      if(wasSuccessful){
+                        LOG.debug("RemoteConfig obtained newest YouTube value!");
+                      }else{
+                          LOG.warn("There was an error obtaining the latest Youtube value from RemoteConfig!");
+                      }
+                  }
+              });
     }
 
     private void initFabric(OA1Config config) {

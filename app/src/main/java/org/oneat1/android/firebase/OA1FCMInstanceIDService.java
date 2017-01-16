@@ -1,4 +1,4 @@
-package org.oneat1.android.fcm;
+package org.oneat1.android.firebase;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;

@@ -21,12 +21,12 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/cobalt"/>
 
-        <service android:name=".fcm.OA1FCMListenerService">
+        <service android:name=".firebase.OA1FCMListenerService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
         </service>
-        <service android:name=".fcm.OA1FCMInstanceIDService">
+        <service android:name=".firebase.OA1FCMInstanceIDService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
             </intent-filter>

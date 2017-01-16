@@ -31,13 +31,9 @@ public enum OA1Font {
 
     public static void init() {
         OA1Font[] values = values();
-        for (int i = 0, len = values.length; i < len; i++) {
-            values[i].get();
+        for (OA1Font font : values) {
+            get(font);
         }
-    }
-
-    public Typeface get() {
-        return get(this);
     }
 
     @NonNull

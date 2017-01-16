@@ -9,8 +9,10 @@
 
 
     <ImageView
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_gravity="center"
-        android:src="@drawable/splash_hero"/>
+        android:layout_marginEnd="70dp"
+        android:layout_marginStart="70dp"
+        android:src="@drawable/splash"/>
 </FrameLayout>

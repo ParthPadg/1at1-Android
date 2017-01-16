@@ -90,6 +90,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
+                        android:drawablePadding="10dp"
+                        android:drawableStart="@drawable/share"
                         android:text="Spread the word"
                         android:textColor="@android:color/white"
                     />
@@ -136,12 +138,16 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:background="@color/facebook"
                         app:mrl_rippleOverlay="true">
 
                         <org.oneat1.android.util.TypefaceTextView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:background="@color/facebook"
+                            android:id="@+id/schedule_facebook_inner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:drawablePadding="10dp"
+                            android:drawableStart="@drawable/facebook"
                             android:gravity="center"
                             android:text="Facebook"
                             android:textColor="@android:color/white"
@@ -153,13 +159,17 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:background="@color/instagram"
                         app:mrl_rippleOverlay="true">
 
                         <org.oneat1.android.util.TypefaceTextView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:id="@+id/schedule_instagram_inner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
                             android:layout_weight="1"
-                            android:background="@color/instagram"
+                            android:drawablePadding="10dp"
+                            android:drawableStart="@drawable/ig"
                             android:gravity="center"
                             android:text="Instagram"
                             android:textColor="@android:color/white"
@@ -171,13 +181,17 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:background="@color/twitter"
                         app:mrl_rippleOverlay="true">
 
                         <org.oneat1.android.util.TypefaceTextView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:id="@+id/schedule_twitter_inner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
                             android:layout_weight="1"
-                            android:background="@color/twitter"
+                            android:drawablePadding="10dp"
+                            android:drawableStart="@drawable/twitter"
                             android:gravity="center"
                             android:text="Twitter"
                             android:textColor="@android:color/white"

@@ -22,11 +22,10 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
-            android:layout_marginEnd="63dp"
-            android:layout_marginStart="63dp"
+            android:layout_marginEnd="50dp"
+            android:layout_marginStart="50dp"
             android:layout_marginTop="80dp"
-            tools:background="@color/tw__blue_default"
-            tools:layout_height="120dp"
+            android:src="@drawable/mobilize"
         />
 
         <org.oneat1.android.util.TypefaceTextView
@@ -79,13 +78,16 @@
             android:layout_marginEnd="30dp"
             android:layout_marginStart="30dp"
             android:layout_marginTop="20dp"
+            android:background="@color/cherryRed"
             app:mrl_rippleOverlay="true">
 
             <org.oneat1.android.util.TypefaceTextView
                 android:id="@+id/notif_pref_button_positive_inner"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/cherryRed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:drawablePadding="10dp"
+                android:drawableStart="@drawable/thumbsup"
                 android:elevation="2dp"
                 android:gravity="center"
                 android:text="I'm in!"

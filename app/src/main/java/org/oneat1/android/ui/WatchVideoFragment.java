@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.text.TextUtils;
@@ -36,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.KeyStore.CallbackHandlerProtection;
 import java.text.NumberFormat;
 import java.util.concurrent.TimeUnit;
 
@@ -62,10 +60,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     private static final long UPDATE_THRESHOLD = TimeUnit.MINUTES.toMillis(2);
     private static final Uri.Builder BASE_URL = Uri.parse("https://www.googleapis.com/youtube/v3/videos")
                                                       .buildUpon()
-                                                      .appendQueryParameter("part", "snippet, statistics, liveStreamingDetails");
-    private static final Uri.Builder UPDATE_URL = Uri.parse("https://www.googleapis.com/youtube/v3/videos")
-                                                      .buildUpon()
-                                                      .appendQueryParameter("part", "liveStreamingDetails");
+                                                      .appendQueryParameter("part", "snippet, statistics");
     private static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
                                                           .addInterceptor(new HttpLoggingInterceptor().setLevel(Level.BASIC))
                                                           .build();
@@ -76,7 +71,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     private Unbinder unbinder;
     private Handler handler = new Handler(Looper.getMainLooper());
     private String videoID = BuildConfig.DEBUG
-                                   ? "SF7FUU7CThs" //eagle video
+                                   ? "YB_nM296Ky8" //fake live video
                                    : null;
 
     public static WatchVideoFragment createInstance() {
@@ -93,8 +88,6 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         if (f != null) { //if this is null, we're *so* boned...
             f.initialize(OA1Config.getInstance(getActivity()).getYoutubeAPIKey(), this);
         }
-
-        handler.postDelayed(updateRunnable, UPDATE_THRESHOLD + 50L);
 
         getVideoInfo(videoID);
 
@@ -123,20 +116,6 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         HTTP_CLIENT.newCall(new Builder().url(url).build())
               .enqueue(new BaseCallback());
     }
-
-    private final Runnable updateRunnable = new Runnable() {
-        @Override
-        public void run() {
-            LOG.debug("requesting live video update...");
-            String url = UPDATE_URL
-                               .appendQueryParameter("id", videoID)
-                               .appendQueryParameter("key", OA1Config.getInstance(getActivity()).getYoutubeAPIKey())
-                               .toString();
-
-            HTTP_CLIENT.newCall(new Request.Builder().url(url).build())
-                  .enqueue(new UpdateCallback());
-        }
-    };
 
     //Youtube callback
     @Override
@@ -171,32 +150,22 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
             YTItem videoItem = response.items.get(0); //blindly take first item; ideally, there should only be one anyway
             if (videoItem.snippet != null && !TextUtils.isEmpty(videoItem.snippet.title)) {
                 title = videoItem.snippet.title;
+            }else{
+                LOG.warn("snippet.title is null!");
             }
 
-            if (videoItem.snippet != null) {
-                NumberFormat numFormat = NumberFormat.getNumberInstance();
-                if (!TextUtils.isEmpty(videoItem.statistics.viewCount)) {
-                    Number viewCount;
-                    try {
-                        viewCount = Long.parseLong(videoItem.statistics.viewCount);
-                    } catch (Exception e) {
-                        LOG.error("Error parsing {} to long - retrying as BigInt", videoItem.statistics.viewCount, e);
-                        viewCount = new BigInteger(videoItem.statistics.viewCount);
-                    }
-                    viewers = numFormat.format(viewCount);
+            NumberFormat numFormat = NumberFormat.getNumberInstance();
+            if (!TextUtils.isEmpty(videoItem.statistics.viewCount)) {
+                Number viewCount;
+                try {
+                    viewCount = Long.parseLong(videoItem.statistics.viewCount);
+                } catch (Exception e) {
+                    LOG.error("Error parsing {} to long - retrying as BigInt", videoItem.statistics.viewCount, e);
+                    viewCount = new BigInteger(videoItem.statistics.viewCount);
                 }
-                if (videoItem.snippet.isLivestream()
-                          && videoItem.liveStreamingDetails != null
-                          && !TextUtils.isEmpty(videoItem.liveStreamingDetails.concurrentViewers)) {
-                    Number liveCount;
-                    try {
-                        liveCount = Long.parseLong(videoItem.liveStreamingDetails.concurrentViewers);
-                    } catch (Exception e) {
-                        LOG.error("Error parsing {} to long - retrying as BigInt", videoItem.statistics.viewCount, e);
-                        liveCount = new BigInteger(videoItem.statistics.viewCount);
-                    }
-                    liveViewers = numFormat.format(liveCount);
-                }
+                viewers = numFormat.format(viewCount);
+            } else {
+                LOG.warn("statistics.viewcount is null!");
             }
         }
 
@@ -212,33 +181,6 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
             videoViewCount.setText(getString(R.string.watch_num_viewers, viewers));
         } else {
             videoViewCount.setText(getString(R.string.watch_num_viewers_live, viewers, liveViewers));
-        }
-    }
-
-    private void bindUpdateResponseToView(YTResponseBody response) {
-        if (response.items != null && response.items.size() > 0) {
-            YTItem videoItem = response.items.get(0);
-
-            if (videoItem.liveStreamingDetails != null
-                      && !TextUtils.isEmpty(videoItem.liveStreamingDetails.concurrentViewers)) {
-                Number liveCount;
-                try {
-                    liveCount = Long.parseLong(videoItem.liveStreamingDetails.concurrentViewers);
-                } catch (Exception e) {
-                    LOG.error("Error parsing {} to long - retrying as BigInt", videoItem.statistics.viewCount, e);
-                    liveCount = new BigInteger(videoItem.statistics.viewCount);
-                }
-                NumberFormat numFormat = NumberFormat.getNumberInstance();
-
-                String current = videoViewCount.getText().toString();
-                int idx = current.indexOf(" viewers");
-                if(idx > -1){
-                    String totalCount = current.substring(0, idx);
-                    String liveViewers = numFormat.format(liveCount);
-                    videoViewCount.setText(getString(R.string.watch_num_viewers_live, totalCount, liveViewers));
-                    handler.postDelayed(updateRunnable, UPDATE_THRESHOLD + 50L); // only request another update if we got Live Video info
-                }
-            }
         }
     }
 
@@ -276,12 +218,4 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
             bindResponseToView(response);
         }
     }
-
-    private class UpdateCallback extends BaseCallback{
-        @Override
-        void onResponseParsed(YTResponseBody response) {
-            bindUpdateResponseToView(response);
-        }
-    }
-
 }

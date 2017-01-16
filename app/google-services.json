@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "366776752657",
+    "firebase_url": "https://oneatone-26e2c.firebaseio.com",
+    "project_id": "oneatone-26e2c",
+    "storage_bucket": "oneatone-26e2c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:366776752657:android:4847f1cb06c86dc3",
+        "android_client_info": {
+          "package_name": "org.oneat1.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "366776752657-jqj1k0at59r3bouvbgmujqn2dmn9s2ed.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdKAqiWtsL7bwST2CogAGX-zaY22I9b1Y"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

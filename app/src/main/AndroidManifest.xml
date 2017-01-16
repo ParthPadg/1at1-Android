@@ -4,17 +4,6 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <service android:name=".fcm.OA1FCMListenerService">
-        <intent-filter>
-            <action android:name="com.google.firebase.MESSAGING_EVENT"/>
-        </intent-filter>
-    </service>
-    <service android:name=".fcm.OA1InstanceIDService">
-        <intent-filter>
-            <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
-        </intent-filter>
-    </service>
-
     <application
         android:name=".OA1App"
         android:allowBackup="true"
@@ -24,6 +13,25 @@
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="3053cedc4bf4e3d9a7deec788fe784cfa0024e61"/>
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher"/>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/cobalt"/>
+
+        <service android:name=".fcm.OA1FCMListenerService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+        <service android:name=".fcm.OA1FCMInstanceIDService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
+
 
         <activity
             android:name=".ui.SplashActivity"

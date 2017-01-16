@@ -1,7 +1,10 @@
 package org.oneat1.android.ui;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.SpannableStringBuilder;
@@ -67,13 +70,20 @@ public class ScheduleFragment extends Fragment {
 
     @OnClick({R.id.schedule_facebook, R.id.schedule_instagram, R.id.schedule_twitter})
     void onClick(View view) {
+        Uri uri = null;
         switch (view.getId()) {
-            case R.id.schedule_facebook:
+            case R.id.schedule_facebook_inner:
+                uri = getFacebookURI(getActivity());
                 break;
-            case R.id.schedule_instagram:
+            case R.id.schedule_instagram_inner:
+                uri = getInstagramURI(getActivity());
                 break;
-            case R.id.schedule_twitter:
+            case R.id.schedule_twitter_inner:
+                uri = getTwitterURI(getActivity());
                 break;
+        }
+        if(uri != null) {
+            startActivity(new Intent(Intent.ACTION_VIEW, uri));
         }
     }
 
@@ -87,4 +97,38 @@ public class ScheduleFragment extends Fragment {
         intent.putExtra(Intent.EXTRA_TEXT, extraText);
         startActivity(Intent.createChooser(intent, "Share 1@1 Action"));
     }
+
+    private static Uri getFacebookURI(Context context) {
+        Uri uri;
+        try {
+            context.getPackageManager().getPackageInfo("com.facebook.katana", 0);
+            uri = Uri.parse("fb://page/1867705966792928");
+        } catch (Exception e) {
+            uri = Uri.parse("https://www.facebook.com/oneatone");
+        }
+        return uri;
+    }
+
+    private static Uri getInstagramURI(Context context) {
+        Uri uri;
+        try {
+            context.getPackageManager().getPackageInfo("com.instagram.android", 0);
+            uri = Uri.parse("instagram://user?username=1at1action");
+        } catch (Exception e) {
+            uri = Uri.parse("https://www.instagram.com/1at1action/");
+        }
+        return uri;
+    }
+
+    private static Uri getTwitterURI(Context context) {
+        Uri uri;
+        try {
+            context.getPackageManager().getPackageInfo("com.twitter.android", 0);
+            uri = Uri.parse("twitter://user?screen_name=1at1Action");
+        } catch (Exception e) {
+            uri = Uri.parse("https://twitter.com/1at1Action");
+        }
+        return uri;
+    }
+
 }

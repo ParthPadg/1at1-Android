@@ -5,8 +5,6 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.text.TextUtils;
@@ -16,6 +14,7 @@ import android.view.ViewGroup;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayer.OnFullscreenListener;
 import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener;
 import com.google.android.youtube.player.YouTubePlayer.Provider;
 import com.google.android.youtube.player.YouTubePlayerFragment;
@@ -36,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.NumberFormat;
-import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -45,7 +43,6 @@ import butterknife.Unbinder;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.Request.Builder;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -57,7 +54,8 @@ import okhttp3.logging.HttpLoggingInterceptor.Level;
  */
 public class WatchVideoFragment extends Fragment implements OnInitializedListener {
     private final static Logger LOG = LoggerFactory.getLogger(WatchVideoFragment.class);
-    private static final long UPDATE_THRESHOLD = TimeUnit.MINUTES.toMillis(2);
+    private static final String KEY_RESPONSE = "watch.youtube.response";
+
     private static final Uri.Builder BASE_URL = Uri.parse("https://www.googleapis.com/youtube/v3/videos")
                                                       .buildUpon()
                                                       .appendQueryParameter("part", "snippet, statistics");
@@ -68,8 +66,8 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     @BindView(R.id.watch_title) TypefaceTextView videoTitle;
     @BindView(R.id.watch_viewercount) TypefaceTextView videoViewCount;
 
+    YTResponseBody responseBody;
     private Unbinder unbinder;
-    private Handler handler = new Handler(Looper.getMainLooper());
     private String videoID = BuildConfig.DEBUG
                                    ? "YB_nM296Ky8" //fake live video
                                    : null;
@@ -89,7 +87,18 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
             f.initialize(OA1Config.getInstance(getActivity()).getYoutubeAPIKey(), this);
         }
 
-        getVideoInfo(videoID);
+        LOG.debug("savedInstanceState is null: {}", savedInstanceState == null);
+        if (savedInstanceState != null) {
+            responseBody = OA1App.getApp()
+                                 .getGson()
+                                 .fromJson(savedInstanceState.getString(KEY_RESPONSE), YTResponseBody.class);
+        }
+
+        if (responseBody == null) { // either there was an error saving, or there's no saved state
+            getVideoInfo(videoID);
+        } else {
+            bindResponseToView(responseBody);
+        }
 
         return view;
     }
@@ -98,6 +107,13 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     public void onDestroyView() {
         super.onDestroyView();
         OA1Util.safeUnbind(unbinder);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        LOG.debug("saving state!");
+        outState.putString(KEY_RESPONSE, OA1App.getApp().getGson().toJson(responseBody));
     }
 
     @OnClick(R.id.watch_share)
@@ -121,6 +137,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     @Override
     public void onInitializationSuccess(Provider provider, YouTubePlayer player, boolean wasRestored) {
         LOG.debug("YOUTUBE player successful init");
+        player.setShowFullscreenButton(false);
         if (!wasRestored) {
             player.cueVideo(videoID);
             LOG.debug("queueing video ID {}", videoID);
@@ -146,6 +163,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         String title = null;
         String viewers = null;
         String liveViewers = null;
+        responseBody = response;
         if (response.items != null && response.items.size() > 0) {
             YTItem videoItem = response.items.get(0); //blindly take first item; ideally, there should only be one anyway
             if (videoItem.snippet != null && !TextUtils.isEmpty(videoItem.snippet.title)) {

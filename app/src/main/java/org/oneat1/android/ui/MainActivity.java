@@ -38,7 +38,6 @@ public class MainActivity extends Activity {
         setupWithViewPager(tabs, viewpager);
     }
 
-
     //This method borrows heavily from TabLayout#setupWithViewPager.
     private void setupWithViewPager(final TabLayout tabs, ViewPager pager) {
         pager.clearOnPageChangeListeners();
@@ -73,7 +72,7 @@ public class MainActivity extends Activity {
     static class MainPagerAdapter extends FragmentStatePagerAdapter {
         private static final String[] TAB_TITLES = {"Home", "Watch", "Follow"};
 
-        public MainPagerAdapter(FragmentManager fm) {
+        MainPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 

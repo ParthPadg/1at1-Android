@@ -10,6 +10,8 @@ import android.support.design.widget.TabLayout.Tab;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 
+import com.twitter.sdk.android.tweetui.TwitterListTimeline;
+
 import org.oneat1.android.R;
 
 import butterknife.BindView;
@@ -80,10 +82,13 @@ public class MainActivity extends Activity {
 
             switch (position) {
                 case 0:
-                default:
                     return ScheduleFragment.newInstance();
                 case 1:
                     return WatchVideoFragment.createInstance();
+                case 2:
+                    return new TweetListFragment();
+                default:
+                    return null;
             }
         }
 

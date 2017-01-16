@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayer.OnFullscreenListener;
 import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener;
 import com.google.android.youtube.player.YouTubePlayer.Provider;
 import com.google.android.youtube.player.YouTubePlayerFragment;
@@ -23,11 +22,14 @@ import com.google.gson.Gson;
 import org.oneat1.android.BuildConfig;
 import org.oneat1.android.OA1App;
 import org.oneat1.android.R;
+import org.oneat1.android.firebase.RemoteConfigHelper;
+import org.oneat1.android.firebase.RemoteConfigHelper.CompletionListener;
 import org.oneat1.android.model.youtube.YTItem;
 import org.oneat1.android.model.youtube.YTResponseBody;
 import org.oneat1.android.util.OA1Config;
 import org.oneat1.android.util.OA1Util;
 import org.oneat1.android.util.OA1Util.ThreadUtil;
+import org.oneat1.android.util.PlayerStateChangeListenerAdapter;
 import org.oneat1.android.util.TypefaceTextView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.NumberFormat;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -68,9 +71,8 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
 
     YTResponseBody responseBody;
     private Unbinder unbinder;
-    private String videoID = BuildConfig.DEBUG
-                                   ? "YB_nM296Ky8" //fake live video
-                                   : null;
+    private String videoID = RemoteConfigHelper.get().getYoutubeID();
+    private YouTubePlayer youtubePlayer;
 
     public static WatchVideoFragment createInstance() {
         return new WatchVideoFragment();
@@ -101,6 +103,31 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         }
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        RemoteConfigHelper.get().fetch(false, new CompletionListener() {
+            @Override
+            public void onComplete(boolean wasSuccessful, @Nullable String youtubeID) {
+                if (wasSuccessful) {
+                    if (youtubeID != null && !Objects.equals(videoID, youtubeID)) { //new value!
+                        videoID = youtubeID;
+                        if (youtubePlayer != null && youtubePlayer.isPlaying()) {
+                            youtubePlayer.setPlayerStateChangeListener(new PlayerStateChangeListenerAdapter() {
+                                @Override
+                                public void onVideoEnded() {
+                                    youtubePlayer.cueVideo(videoID);
+                                }
+                            });
+                        } else if (youtubePlayer != null) {
+                            youtubePlayer.cueVideo(youtubeID);
+                        } //nothing we can do; no UI :(
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -136,6 +163,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     //Youtube callback
     @Override
     public void onInitializationSuccess(Provider provider, YouTubePlayer player, boolean wasRestored) {
+        this.youtubePlayer = player;
         LOG.debug("YOUTUBE player successful init");
         player.setShowFullscreenButton(false);
         if (!wasRestored) {

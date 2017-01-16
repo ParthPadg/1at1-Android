@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:background="@color/darkBlue"
             android:orientation="vertical"
-            android:paddingTop="15dp">
+            >
 
             <org.oneat1.android.util.TypefaceTextView
                 android:layout_width="match_parent"
@@ -208,7 +208,7 @@
                     android:layout_marginTop="20dp"
                     android:autoLink="all"
                     android:linksClickable="true"
-                    android:text="Check out 1@1.org for more information. Feedback or questions? Email info@1at1.org."
+                    android:text="@string/for_more_info"
                     android:textColor="@color/darkGray"/>
 
             </LinearLayout>

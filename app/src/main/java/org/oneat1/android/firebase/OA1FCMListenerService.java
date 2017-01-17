@@ -4,8 +4,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
-import android.support.v7.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -39,14 +40,16 @@ public class OA1FCMListenerService extends FirebaseMessagingService {
         }
 
         Builder builder = new NotificationCompat.Builder(this)
-                                .setColor(getColor(R.color.cobalt))
-                                .setSmallIcon(R.mipmap.ic_launcher)
+                                .setColor(ContextCompat.getColor(this, R.color.darkBlue))
+                                .setSmallIcon(R.drawable.ic_notif)
                                 .setContentIntent(PendingIntent.getActivity(this, 10101,
                                       new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                                       PendingIntent.FLAG_UPDATE_CURRENT));
 
         if (data.getTitle() != null) {
             builder.setContentTitle(data.getTitle());
+        } else {
+            builder.setContentTitle("1@1");
         }
         if (data.getBody() != null) {
             builder.setContentText(data.getBody());

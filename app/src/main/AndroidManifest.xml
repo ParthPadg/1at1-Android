@@ -7,7 +7,7 @@
     <application
         android:name=".OA1App"
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher"
         android:label="@string/app_name"
         android:theme="@style/TranslucentStatusbarTheme">
         <meta-data
@@ -15,7 +15,7 @@
             android:value="3053cedc4bf4e3d9a7deec788fe784cfa0024e61"/>
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@mipmap/ic_launcher"/>
+            android:resource="@drawable/ic_notif"/>
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/cobalt"/>
@@ -36,6 +36,7 @@
         <activity
             android:name=".ui.SplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="portrait"
             android:theme="@style/TranslucentStatusbarTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -43,7 +44,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.NotificationPreferenceActivity"/>
+        <activity android:name=".ui.NotificationPreferenceActivity"
+                  android:screenOrientation="portrait"/>
         <activity android:name=".ui.MainActivity"/>
     </application>
 

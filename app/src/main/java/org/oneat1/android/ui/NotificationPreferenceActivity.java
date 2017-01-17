@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
+
 import org.oneat1.android.BuildConfig;
 import org.oneat1.android.R;
 import org.oneat1.android.util.Prefs;
@@ -24,7 +27,13 @@ public class NotificationPreferenceActivity extends Activity {
 
     @OnClick({R.id.notif_pref_button_positive, R.id.notif_pref_button_negative})
     void onButtonsClick(View view) {
-        Prefs.setNotificationPreference(view.getId() == R.id.notif_pref_button_positive_inner);
+        boolean accepted = view.getId() == R.id.notif_pref_button_positive_inner;
+        Prefs.setNotificationPreference(accepted);
+        CustomEvent event = new CustomEvent("Notification Preference")
+                                  .putCustomAttribute("opted in", accepted ? "yes" : "no");
+        if(!BuildConfig.DEBUG){
+            Answers.getInstance().logCustom(event);
+        }
         startActivity(new Intent(this, MainActivity.class));
         finish();
     }

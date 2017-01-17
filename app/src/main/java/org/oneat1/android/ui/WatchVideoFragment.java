@@ -12,6 +12,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener;
@@ -19,6 +21,7 @@ import com.google.android.youtube.player.YouTubePlayer.Provider;
 import com.google.android.youtube.player.YouTubePlayerFragment;
 import com.google.gson.Gson;
 
+import org.oneat1.android.BuildConfig;
 import org.oneat1.android.OA1App;
 import org.oneat1.android.R;
 import org.oneat1.android.firebase.RemoteConfigHelper;
@@ -146,9 +149,16 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     void onShareClick() {
         Intent share = new Intent(Intent.ACTION_SEND)
                               .setType("text/plain")
-                              .putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=" + videoID)
-                              .putExtra(Intent.EXTRA_SUBJECT, "Check out the 1@1 action for national equality!");
-        startActivity(share);
+                              .putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=" + videoID);
+        startActivityForResult(Intent.createChooser(share, "Check out the 1@1 Action!"), 191817);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 191817 && !BuildConfig.DEBUG) {
+            Answers.getInstance().logCustom(new CustomEvent("Shared Youtube Video"));
+        }
     }
 
     private void getVideoInfo(String id) {

@@ -8,11 +8,17 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.format.DateFormat;
+import android.text.format.DateUtils;
 import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
+
+import org.oneat1.android.BuildConfig;
 import org.oneat1.android.R;
 import org.oneat1.android.util.OA1Util;
 import org.oneat1.android.util.TypefaceTextView;
@@ -90,11 +96,17 @@ public class ScheduleFragment extends Fragment {
     void shareAppClick() {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_SUBJECT, "1@1 Action");
-        String extraText = "Check out the 1@1 action for national equality! 1at1.org \n\n"
-                            + "https://play.google.com/store/apps/details?id=org.oneat1.android";
+        String extraText = "https://play.google.com/store/apps/details?id=org.oneat1.android";
         intent.putExtra(Intent.EXTRA_TEXT, extraText);
-        startActivity(Intent.createChooser(intent, "Share 1@1 Action"));
+        startActivityForResult(Intent.createChooser(intent, "Share 1@1 Action"), 191817);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 191817 && !BuildConfig.DEBUG) {
+            Answers.getInstance().logCustom(new CustomEvent("Shared App"));
+        }
     }
 
     private static Uri getFacebookURI(Context context) {

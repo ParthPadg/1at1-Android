@@ -4,11 +4,14 @@ import android.app.Application;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.answers.Answers;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
+import org.oneat1.android.util.CrashlyticsCrashAppender;
 import org.oneat1.android.firebase.RemoteConfigHelper;
 import org.oneat1.android.firebase.RemoteConfigHelper.CompletionListener;
 import org.oneat1.android.util.OA1Config;
@@ -16,8 +19,6 @@ import org.oneat1.android.util.OA1Font;
 import org.oneat1.android.util.Prefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeUnit;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
@@ -64,7 +65,6 @@ public class OA1App extends Application {
 
     private void configureLogging() {
         Log.i("OA1App", "Configuring Logback...");
-
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
         loggerContext.reset();
 
@@ -74,15 +74,18 @@ public class OA1App extends Application {
         logcatEncoder.setContext(loggerContext);
         logcatEncoder.setPattern("%msg%n");
         logcatEncoder.start();
-        LogcatAppender logcatAppender = new LogcatAppender();
-        logcatAppender.setContext(loggerContext);
-        logcatAppender.setEncoder(logcatEncoder);
-
-        ThresholdFilter filter = new ThresholdFilter();
-        filter.setLevel((BuildConfig.DEBUG ? Level.ALL : Level.WARN).levelStr);
-        logcatAppender.addFilter(filter);
-        logcatAppender.start();
-        rootLogger.addAppender(logcatAppender);
+        if (BuildConfig.DEBUG) {
+            LogcatAppender logcatAppender = new LogcatAppender();
+            logcatAppender.setContext(loggerContext);
+            logcatAppender.setEncoder(logcatEncoder);
+            logcatAppender.start();
+            rootLogger.addAppender(logcatAppender);
+        } else {
+            CrashlyticsCrashAppender firebaseAppender = new CrashlyticsCrashAppender(logcatEncoder);
+            firebaseAppender.setContext(loggerContext);
+            firebaseAppender.start();
+            rootLogger.addAppender(firebaseAppender);
+        }
 
         LOG.warn("Finished initializing logging library.");
         LOG.warn("This is the first log message after the app starts up! App Version: {}", BuildConfig.VERSION_NAME);
@@ -105,25 +108,10 @@ public class OA1App extends Application {
     private void initFabric(OA1Config config) {
         LOG.debug("Initializing Fabric/Twitter");
         TwitterAuthConfig authConfig = new TwitterAuthConfig(config.getTwitterKey(), config.getTwitterSecret());
-        Fabric.with(this, new Twitter(authConfig));
-    }
-
-    /*
-       private boolean checkPlayServices() {
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-                LOG.debug("This device supports Google Play Services, but they are not installed. Notifications will not work");
-            } else {
-                LOG.debug("This device does not support Google Play Services. Notifications will not work");
-            }
-            return false;
+        if(BuildConfig.DEBUG) {
+            Fabric.with(this, new Twitter(authConfig)); //don't enable Crashlytics for Debug builds!
+        }else{
+            Fabric.with(this, new Twitter(authConfig), new Crashlytics());
         }
-        return true;
     }
-     */
-
-
-
-
 }

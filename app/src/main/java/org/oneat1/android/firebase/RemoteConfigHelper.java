@@ -3,10 +3,14 @@ package org.oneat1.android.firebase;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.AnswersEvent;
+import com.crashlytics.android.answers.CustomEvent;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
+import org.oneat1.android.BuildConfig;
 import org.oneat1.android.R;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,9 +58,24 @@ public class RemoteConfigHelper {
                       if (success = task.isSuccessful()) {
                           LOG.debug("successful fetch!");
                           id = remoteConfigInstance.getString(KEY_YOUTUBE_ID);
-                          if (remoteConfigInstance.getInfo()
-                                    .getLastFetchStatus() == FirebaseRemoteConfig.LAST_FETCH_STATUS_THROTTLED) {
-                              LOG.warn("fetch was from cache");
+                          CustomEvent event = new CustomEvent("Firebase Fetch Status");
+                          switch (remoteConfigInstance.getInfo().getLastFetchStatus()) {
+                              case FirebaseRemoteConfig.LAST_FETCH_STATUS_SUCCESS:
+                                  event.putCustomAttribute("status", "success");
+                                  break;
+                              case FirebaseRemoteConfig.LAST_FETCH_STATUS_FAILURE:
+                                  event.putCustomAttribute("status", "failure");
+                                  break;
+                              case FirebaseRemoteConfig.LAST_FETCH_STATUS_NO_FETCH_YET:
+                                  event.putCustomAttribute("status", "incomplete");
+                                  break;
+                              case FirebaseRemoteConfig.LAST_FETCH_STATUS_THROTTLED:
+                                  event.putCustomAttribute("status", "throttled");
+                                  LOG.warn("fetch was from cache");
+                                  break;
+                          }
+                          if (!BuildConfig.DEBUG) {
+                              Answers.getInstance().logCustom(event);
                           }
                       } else {
                           LOG.error("Error while fetching remote config: ", task.getException());

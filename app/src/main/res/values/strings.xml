@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">1@1 Action</string>
+    <string name="app_name">1@1</string>
     <string name="notif_pref_title">To help you make the most impact, we’d like to send you two kinds of
         notifications:
     </string>
@@ -10,7 +10,7 @@
     <string name="schedule_text">%1$s\nRise for 1 minute of silence</string>
     <string name="watch_num_viewers">%1$s viewers</string>
     <!--<string name="for_more_info">Check out <a href="http://www.1at1.org/">1at1.org</a> for more information. Feedback or questions? Email <a href="mailto:info@1at1.org">info@1at1.org</a>.</string>-->
-    <string name="for_more_info">Check out 1at1.org for more information. Feedback or questions? Email info@1at1.org.
+    <string name="for_more_info">Check out 1at1.org for more information.\nFeedback or questions? Email info@1at1.org.
     </string>
 
 </resources>

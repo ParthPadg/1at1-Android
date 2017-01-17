@@ -1,17 +1,61 @@
-# Add project specific ProGuard rules here.
-# By default, the flags in this file are appended to flags specified
-# in /Users/parthpadgaonkar/Library/Android/sdk/tools/proguard/proguard-android.txt
-# You can edit the include path and order by changing the proguardFiles
-# directive in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+-optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
+-optimizationpasses 5
+-dontpreverify
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-repackageclasses ''
+-verbose
+-allowaccessmodification
 
-# Add any project specific keep options here:
+-libraryjars libs
+-keepattributes *Annotation*
+-keepattributes EnclosingMethod
+-keepattributes SourceFile,LineNumberTable #needed for crashlytics
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
+-keep public class * extends android.preference.Preference
+-keep public class * extends android.view.View {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context, android.util.AttributeSet);
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+}
+-keepclasseswithmembers class * {
+    public <init>(android.content.Context, android.util.AttributeSet);
+}
+-keepclasseswithmembers class * {
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+}
+-keepclassmembers class * extends android.content.Context {
+    public void *(android.view.View);
+    public void *(android.view.MenuItem);
+}
+-keepclassmembers enum * { *;}
+-keepclassmembers class * implements android.os.Parcelable {
+    static ** CREATOR;
+}
+-keep public class * {
+    public protected *;
+}
+
+#misc
+-dontwarn javax.**
+-dontwarn java.beans.**
+# The support library contains references to newer platform versions.
+# Don't warn about those in case this app is linking against an older
+# platform version.  We know about them, and they are safe.
+-dontwarn android.support.**
+
+
+#Logback
+-keep class org.slf4j.Logger.** {*;}
+-keep class org.slf4j.LoggerFactory.** {*;}
+-keep class ch.qos.logback.core.AppenderBase.** {*;}
+-keep class ch.qos.logback.classic.encoder.PatternLayoutEncoder.** {*;}
+-keep class ch.qos.logback.classic.spi.ILoggingEvent.** {*;}
+-keep class ch.qos.logback.classic.Logger.** {*;}
+-keep class ch.qos.logback.classic.LoggerContext.** {*;}
+-keep class ch.qos.logback.classic.LogcatAppender.** {*;}

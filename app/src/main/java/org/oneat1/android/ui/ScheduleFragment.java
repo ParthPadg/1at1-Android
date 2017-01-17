@@ -58,7 +58,9 @@ public class ScheduleFragment extends Fragment {
         instance.set(2017, 0, 21, 13, 0);
         instance.setTimeZone(TimeZone.getTimeZone("America/New_York"));
 
-        SimpleDateFormat formatter = new SimpleDateFormat("MMM dd, yyyy / h:mm aa zzz", Locale.getDefault());
+        boolean is12Hr = !DateFormat.is24HourFormat(getActivity());
+
+        SimpleDateFormat formatter = new SimpleDateFormat("MMM dd, yyyy / " + (is12Hr ? 'h' : 'H') + ":mm aa zzz", Locale.getDefault());
         formatter.setTimeZone(TimeZone.getDefault());
         SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.schedule_text, formatter.format(new Date(instance
                                                                                                                                   .getTimeInMillis()))));

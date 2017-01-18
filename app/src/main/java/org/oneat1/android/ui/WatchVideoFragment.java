@@ -196,7 +196,11 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         }
     }
 
-    private void bindResponseToView(YTResponseBody response) {
+    void bindResponseToView(YTResponseBody response) {
+        if(videoTitle == null || videoViewCount == null) {
+            LOG.error("Error - no UI!");
+            return;
+        }
         String title = null;
         String viewers = null;
         responseBody = response;

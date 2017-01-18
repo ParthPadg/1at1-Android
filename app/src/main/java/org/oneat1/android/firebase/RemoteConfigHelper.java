@@ -80,7 +80,13 @@ public class RemoteConfigHelper {
                               Answers.getInstance().logCustom(event);
                           }
                       } else {
-                          LOG.error("Error while fetching remote config: ", task.getException());
+                          Exception exception = task.getException();
+                          LOG.error("Error while fetching remote config: ", exception);
+                          if (!BuildConfig.DEBUG) {
+                              CustomEvent event = new CustomEvent("Firebase Error")
+                                                        .putCustomAttribute("Message", exception == null ? "null" : exception .getLocalizedMessage());
+                              Answers.getInstance().logCustom(event);
+                          }
                       }
                       final String finalId = id;
                       listener.onComplete(success, finalId);

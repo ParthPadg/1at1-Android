@@ -12,6 +12,8 @@ import org.oneat1.android.BuildConfig;
 import org.oneat1.android.R;
 import org.oneat1.android.util.Prefs;
 
+import java.util.TimeZone;
+
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnLongClick;
@@ -29,10 +31,13 @@ public class NotificationPreferenceActivity extends Activity {
     void onButtonsClick(View view) {
         boolean accepted = view.getId() == R.id.notif_pref_button_positive_inner;
         Prefs.setNotificationPreference(accepted);
-        CustomEvent event = new CustomEvent("Notification Preference")
-                                  .putCustomAttribute("opted in", accepted ? "yes" : "no");
-        if(!BuildConfig.DEBUG){
+        if (!BuildConfig.DEBUG) {
+            CustomEvent event = new CustomEvent("Notification Preference")
+                                      .putCustomAttribute("opted in", accepted ? "yes" : "no");
             Answers.getInstance().logCustom(event);
+
+            Answers.getInstance()
+                  .logCustom(new CustomEvent("Timezone").putCustomAttribute("timezone", TimeZone.getDefault().getDisplayName()));
         }
         startActivity(new Intent(this, MainActivity.class));
         finish();

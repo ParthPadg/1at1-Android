@@ -1,5 +1,6 @@
 package org.oneat1.android.ui;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Intent;
@@ -11,9 +12,11 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.crashlytics.android.answers.ShareEvent;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener;
@@ -41,6 +44,7 @@ import java.math.BigInteger;
 import java.text.NumberFormat;
 import java.util.Objects;
 
+import butterknife.BindDrawable;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -70,6 +74,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
 
     @BindView(R.id.watch_title) TypefaceTextView videoTitle;
     @BindView(R.id.watch_viewercount) TypefaceTextView videoViewCount;
+    @BindView(R.id.watch_progress) ProgressBar progress;
 
     YTResponseBody responseBody;
     private Unbinder unbinder;
@@ -103,6 +108,13 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         } else {
             bindResponseToView(responseBody);
         }
+
+        progress.setVisibility(View.VISIBLE);
+        progress.animate()
+              .alpha(1)
+              .start();
+        videoViewCount.setVisibility(View.GONE);
+        videoTitle.setVisibility(View.GONE);
 
         return view;
     }
@@ -156,8 +168,8 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 191817 && !BuildConfig.DEBUG) {
-            Answers.getInstance().logCustom(new CustomEvent("Shared Youtube Video"));
+        if (requestCode == 191817 && !BuildConfig.DEBUG && resultCode == Activity.RESULT_OK) {
+            Answers.getInstance().logShare(new ShareEvent().putContentName("Youtube").putContentId(videoID));
         }
     }
 
@@ -236,6 +248,20 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
 
         videoTitle.setText(title);
         videoViewCount.setText(getString(R.string.watch_num_viewers, viewers));
+
+        videoTitle.setVisibility(View.VISIBLE);
+        videoTitle.setAlpha(0f);
+        videoViewCount.setVisibility(View.VISIBLE);
+        videoViewCount.setAlpha(0f);
+
+        progress.animate().alpha(0).withEndAction(new Runnable() {
+            @Override
+            public void run() {
+                progress.setVisibility(View.GONE);
+            }
+        }).start();
+        videoTitle.animate().alpha(1f).start();
+        videoViewCount.animate().alpha(1f).start();
     }
 
     private class BaseCallback implements Callback{
@@ -243,10 +269,21 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         @Override
         public void onFailure(Call call, IOException e) {
             LOG.error("Error getting Youtube video data for {}", videoID, e);
+            if (!BuildConfig.DEBUG) {
+                Answers.getInstance()
+                      .logCustom(new CustomEvent("Youtube Response Code")
+                                       .putCustomAttribute("code", -1)
+                                       .putCustomAttribute("reason", e.getLocalizedMessage())
+                      );
+            }
         }
 
         @Override
         public void onResponse(Call call, Response response) throws IOException {
+            if (!BuildConfig.DEBUG) {
+                Answers.getInstance()
+                      .logCustom(new CustomEvent("Youtube Response Code").putCustomAttribute("code", response.code()));
+            }
             if (response.isSuccessful()) {
                 LOG.debug("successfully obtained Youtube data");
                 try (ResponseBody body = response.body()) {

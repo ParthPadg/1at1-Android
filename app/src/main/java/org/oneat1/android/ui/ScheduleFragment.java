@@ -1,10 +1,12 @@
 package org.oneat1.android.ui;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -17,6 +19,8 @@ import android.view.ViewGroup;
 
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.crashlytics.android.answers.InviteEvent;
+import com.crashlytics.android.answers.ShareEvent;
 
 import org.oneat1.android.BuildConfig;
 import org.oneat1.android.R;
@@ -66,6 +70,7 @@ public class ScheduleFragment extends Fragment {
                                                                                                                                   .getTimeInMillis()))));
         ssb.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.darkBlue)), 13, 15, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
         scheduleDatetime.setText(ssb);
+
         return view;
     }
 
@@ -106,8 +111,9 @@ public class ScheduleFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 191817 && !BuildConfig.DEBUG) {
-            Answers.getInstance().logCustom(new CustomEvent("Shared App"));
+        if (requestCode == 191817 && !BuildConfig.DEBUG && resultCode == Activity.RESULT_OK) {
+            Answers.getInstance().logShare(new ShareEvent().putContentName("1@1 App"));
+            Answers.getInstance().logInvite(new InviteEvent().putMethod("share"));
         }
     }
 

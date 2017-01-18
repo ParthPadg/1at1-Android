@@ -47,6 +47,7 @@ public class RemoteConfigHelper {
     }
 
     public void fetch(boolean bustCache, final CompletionListener listener) {
+        final long lastFetch = remoteConfigInstance.getInfo().getFetchTimeMillis();
         remoteConfigInstance
               .fetch(bustCache ? 0 : FIREBASE_FETCH_THRESHOLD)
               .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -75,6 +76,7 @@ public class RemoteConfigHelper {
                                   break;
                           }
                           if (!BuildConfig.DEBUG) {
+                              event.putCustomAttribute("last fetch (s)", TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastFetch));
                               Answers.getInstance().logCustom(event);
                           }
                       } else {

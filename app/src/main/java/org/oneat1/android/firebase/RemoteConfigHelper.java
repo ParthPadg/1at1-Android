@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class RemoteConfigHelper {
     private final static Logger LOG = LoggerFactory.getLogger(RemoteConfigHelper.class);
 
-    private static final long FIREBASE_FETCH_THRESHOLD = TimeUnit.MINUTES.toSeconds(30L); //playing with fire, because server throttles at ~5+ requests per hour.
+    private static final long FIREBASE_FETCH_THRESHOLD = TimeUnit.MINUTES.toSeconds(15); //playing with fire, because server throttles at ~5+ requests per hour.
     private static final String KEY_YOUTUBE_ID = "LiveVideoUrl";
 
     private static RemoteConfigHelper sInstance;

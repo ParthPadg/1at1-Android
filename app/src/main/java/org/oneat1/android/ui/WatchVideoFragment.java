@@ -120,28 +120,30 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        RemoteConfigHelper.get().fetch(false, new CompletionListener() {
-            @Override
-            public void onComplete(boolean wasSuccessful, @Nullable String youtubeID) {
-                if (wasSuccessful) {
-                    if (youtubeID != null && !Objects.equals(videoID, youtubeID)) { //new value!
-                        videoID = youtubeID;
-                        if (youtubePlayer != null && youtubePlayer.isPlaying()) {
-                            youtubePlayer.setPlayerStateChangeListener(new PlayerStateChangeListenerAdapter() {
-                                @Override
-                                public void onVideoEnded() {
-                                    youtubePlayer.cueVideo(videoID);
-                                }
-                            });
-                        } else if (youtubePlayer != null) {
-                            youtubePlayer.cueVideo(youtubeID);
-                        } //nothing we can do; no UI :(
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if(isVisibleToUser){
+            RemoteConfigHelper.get().fetch(false, new CompletionListener() {
+                @Override
+                public void onComplete(boolean wasSuccessful, @Nullable String youtubeID) {
+                    if (wasSuccessful) {
+                        if (youtubeID != null && !Objects.equals(videoID, youtubeID)) { //new value!
+                            videoID = youtubeID;
+                            if (youtubePlayer != null && youtubePlayer.isPlaying()) {
+                                youtubePlayer.setPlayerStateChangeListener(new PlayerStateChangeListenerAdapter() {
+                                    @Override
+                                    public void onVideoEnded() {
+                                        youtubePlayer.cueVideo(videoID);
+                                    }
+                                });
+                            } else if (youtubePlayer != null) {
+                                youtubePlayer.cueVideo(youtubeID);
+                            } //nothing we can do; no UI :(
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override

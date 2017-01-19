@@ -88,8 +88,7 @@ public class RemoteConfigHelper {
                               Answers.getInstance().logCustom(event);
                           }
                       }
-                      final String finalId = id;
-                      listener.onComplete(success, finalId);
+                      listener.onComplete(success, id);
                   }
               });
     }

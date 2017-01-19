@@ -44,7 +44,6 @@ import java.math.BigInteger;
 import java.text.NumberFormat;
 import java.util.Objects;
 
-import butterknife.BindDrawable;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -81,15 +80,24 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     private String videoID = RemoteConfigHelper.get().getYoutubeID();
     private YouTubePlayer youtubePlayer;
 
+
     public static WatchVideoFragment createInstance() {
         return new WatchVideoFragment();
     }
+
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_video_watch, container, false);
         unbinder = ButterKnife.bind(this, view);
+
+        progress.setVisibility(View.VISIBLE);
+        progress.animate()
+              .alpha(1)
+              .start();
+        videoViewCount.setVisibility(View.GONE);
+        videoTitle.setVisibility(View.GONE);
 
         YouTubePlayerFragment f = (YouTubePlayerFragment) getChildFragmentManager().findFragmentById(R.id.watch_fragment);
         if (f != null) { //if this is null, we're *so* boned...
@@ -108,14 +116,6 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         } else {
             bindResponseToView(responseBody);
         }
-
-        progress.setVisibility(View.VISIBLE);
-        progress.animate()
-              .alpha(1)
-              .start();
-        videoViewCount.setVisibility(View.GONE);
-        videoTitle.setVisibility(View.GONE);
-
         return view;
     }
 
@@ -187,11 +187,13 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     @Override
     public void onInitializationSuccess(Provider provider, YouTubePlayer player, boolean wasRestored) {
         this.youtubePlayer = player;
-        LOG.debug("YOUTUBE player successful init");
+        LOG.debug("YOUTUBE player successful init; wasRestored {}", wasRestored);
         player.setShowFullscreenButton(false);
         if (!wasRestored) {
             player.cueVideo(videoID);
             LOG.debug("queueing video ID {}", videoID);
+        } else {
+            player.play();
         }
     }
 

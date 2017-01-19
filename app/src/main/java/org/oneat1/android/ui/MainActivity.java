@@ -7,6 +7,7 @@ import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TabLayout.Tab;
+import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
@@ -67,7 +68,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    static class MainPagerAdapter extends FragmentStatePagerAdapter {
+    static class MainPagerAdapter extends FragmentPagerAdapter {
         private static final String[] TAB_TITLES = {"Home", "Watch", "Follow"};
 
         MainPagerAdapter(FragmentManager fm) {

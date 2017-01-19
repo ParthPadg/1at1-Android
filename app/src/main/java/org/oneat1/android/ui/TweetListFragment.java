@@ -17,6 +17,7 @@ import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.models.Tweet;
 import com.twitter.sdk.android.tweetui.SearchTimeline;
 import com.twitter.sdk.android.tweetui.SearchTimeline.Builder;
+import com.twitter.sdk.android.tweetui.SearchTimeline.ResultType;
 import com.twitter.sdk.android.tweetui.TimelineResult;
 import com.twitter.sdk.android.tweetui.TweetTimelineListAdapter;
 
@@ -51,6 +52,7 @@ public class TweetListFragment extends Fragment {
 
         SearchTimeline searchTimeline = new Builder()
                                               .query("#1at1action")
+                                              .resultType(ResultType.RECENT)
                                               .build();
         listAdapter = new TweetTimelineListAdapter.Builder(getActivity())
                             .setTimeline(searchTimeline)

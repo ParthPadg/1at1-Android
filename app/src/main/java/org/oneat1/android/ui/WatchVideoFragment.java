@@ -195,13 +195,23 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         } else {
             player.play();
         }
+        if(!BuildConfig.DEBUG){
+            CustomEvent event = new CustomEvent("Youtube SDK Init")
+                                            .putCustomAttribute("success", "yes");
+            Answers.getInstance().logCustom(event);
+        }
     }
 
     //Youtube callback
     @Override
     public void onInitializationFailure(Provider provider, YouTubeInitializationResult errorReason) {
         LOG.error("Error initializing Youtube client: {}", errorReason);
-        if(getActivity() == null) return;
+        if(getActivity() == null) return;if(!BuildConfig.DEBUG){
+            CustomEvent event = new CustomEvent("Youtube SDK Init")
+                                      .putCustomAttribute("success", "no")
+                                      .putCustomAttribute("reason", errorReason.name());
+            Answers.getInstance().logCustom(event);
+        }
         if (errorReason.isUserRecoverableError()) {
             errorReason.getErrorDialog(getActivity(), 19181).show();
         } else {
@@ -286,7 +296,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         public void onResponse(Call call, Response response) throws IOException {
             if (!BuildConfig.DEBUG) {
                 Answers.getInstance()
-                      .logCustom(new CustomEvent("Youtube Response Code").putCustomAttribute("code", response.code()));
+                      .logCustom(new CustomEvent("Youtube Response Code").putCustomAttribute("code", Integer.toString(response.code())));
             }
             if (response.isSuccessful()) {
                 LOG.debug("successfully obtained Youtube data");

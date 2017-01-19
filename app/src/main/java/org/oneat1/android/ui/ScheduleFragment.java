@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -31,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -118,36 +122,33 @@ public class ScheduleFragment extends Fragment {
     }
 
     private static Uri getFacebookURI(Context context) {
-        Uri uri;
-        try {
-            context.getPackageManager().getPackageInfo("com.facebook.katana", 0);
-            uri = Uri.parse("fb://page/1867705966792928");
-        } catch (Exception e) {
-            uri = Uri.parse("https://www.facebook.com/oneatone");
-        }
-        return uri;
+        return getLaunchUri(context, "com.facebook.katana", "fb://page/1867705966792928", "https://www.facebook.com/oneatone");
     }
 
     private static Uri getInstagramURI(Context context) {
-        Uri uri;
-        try {
-            context.getPackageManager().getPackageInfo("com.instagram.android", 0);
-            uri = Uri.parse("instagram://user?username=1at1action");
-        } catch (Exception e) {
-            uri = Uri.parse("https://www.instagram.com/1at1action/");
-        }
-        return uri;
+        return getLaunchUri(context, "com.instagram.android", "instagram://user?username=1at1action", "https://www.instagram.com/1at1action/");
     }
 
     private static Uri getTwitterURI(Context context) {
-        Uri uri;
-        try {
-            context.getPackageManager().getPackageInfo("com.twitter.android", 0);
-            uri = Uri.parse("twitter://user?screen_name=1at1Action");
-        } catch (Exception e) {
-            uri = Uri.parse("https://twitter.com/1at1Action");
+        return getLaunchUri(context, "com.twitter.android", "twitter://user?screen_name=1at1Action", "https://twitter.com/1at1Action");
+    }
+
+    private static Uri getLaunchUri(Context ctx, String pkg, String deeplink, String weblink) {
+        PackageManager pm = ctx.getPackageManager();
+        List<ResolveInfo> list = pm.queryIntentActivities(new Intent(Intent.ACTION_VIEW, Uri.parse(deeplink)), PackageManager.MATCH_DEFAULT_ONLY);
+        boolean exists;
+        if (!list.isEmpty()) {
+            try {
+                PackageInfo info = pm.getPackageInfo(pkg, 0);
+                exists = info.applicationInfo.enabled;
+            } catch (Exception e) {
+                exists = false;
+            }
+        } else {
+            exists = false;
         }
-        return uri;
+
+        return Uri.parse(exists ? deeplink : weblink);
     }
 
 }

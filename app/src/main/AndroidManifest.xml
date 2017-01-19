@@ -46,7 +46,8 @@
         </activity>
         <activity android:name=".ui.NotificationPreferenceActivity"
                   android:screenOrientation="portrait"/>
-        <activity android:name=".ui.MainActivity"/>
+        <activity android:name=".ui.MainActivity"
+                  android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

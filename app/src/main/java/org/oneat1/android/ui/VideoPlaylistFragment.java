@@ -1,4 +1,3 @@
-/*
 package org.oneat1.android.ui;
 
 import android.app.Activity;
@@ -8,13 +7,18 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.annotation.UiThread;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.Adapter;
+import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 
+import com.bumptech.glide.Glide;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.crashlytics.android.answers.ShareEvent;
@@ -23,76 +27,77 @@ import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener;
 import com.google.android.youtube.player.YouTubePlayer.Provider;
 import com.google.android.youtube.player.YouTubePlayerFragment;
-import com.google.gson.Gson;
+import com.google.api.client.util.Collections2;
+import com.google.api.services.youtube.model.PlaylistItem;
+import com.google.api.services.youtube.model.PlaylistItemSnippet;
+import com.google.api.services.youtube.model.ThumbnailDetails;
+import com.google.api.services.youtube.model.Video;
+import com.google.api.services.youtube.model.VideoSnippet;
+import com.google.api.services.youtube.model.VideoStatistics;
+import com.twitter.sdk.android.core.internal.scribe.DefaultScribeClient;
 
 import org.oneat1.android.BuildConfig;
-import org.oneat1.android.OA1App;
 import org.oneat1.android.R;
 import org.oneat1.android.firebase.RemoteConfigHelper;
 import org.oneat1.android.firebase.RemoteConfigHelper.CompletionListener;
-import org.oneat1.android.model.youtube.YTItem;
+import org.oneat1.android.model.ParcelableVideoItem;
+import org.oneat1.android.ui.VideoPlaylistFragment.PlaylistVideoAdapter.CellViewHolder;
+import org.oneat1.android.util.API;
+import org.oneat1.android.util.API.Callback;
 import org.oneat1.android.util.OA1Config;
 import org.oneat1.android.util.OA1Util;
-import org.oneat1.android.util.OA1Util.ThreadUtil;
 import org.oneat1.android.util.PlayerStateChangeListenerAdapter;
 import org.oneat1.android.util.TypefaceTextView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.text.NumberFormat;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request.Builder;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import okhttp3.logging.HttpLoggingInterceptor;
-import okhttp3.logging.HttpLoggingInterceptor.Level;
 
-*/
 /**
  * Created by parthpadgaonkar on 1/8/17.
- *//*
-
-public class WatchVideoFragment extends Fragment implements OnInitializedListener {
-    private final static Logger LOG = LoggerFactory.getLogger(WatchVideoFragment.class);
+ */
+public class VideoPlaylistFragment extends Fragment implements OnInitializedListener {
+    private final static Logger LOG = LoggerFactory.getLogger(VideoPlaylistFragment.class);
     private static final String KEY_RESPONSE = "watch.youtube.response";
-
-    private static final Uri.Builder BASE_URL = Uri.parse("https://www.googleapis.com/youtube/v3/videos")
-                                                      .buildUpon()
-                                                      .appendQueryParameter("part", "snippet, statistics");
-    private static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
-                                                          .addInterceptor(new HttpLoggingInterceptor().setLevel(Level.BASIC))
-                                                          .build();
 
     @BindView(R.id.watch_title) TypefaceTextView videoTitle;
     @BindView(R.id.watch_viewercount) TypefaceTextView videoViewCount;
     @BindView(R.id.watch_progress) ProgressBar progress;
+    @BindView(R.id.watch_playlist) RecyclerView playlistRecycler;
 
-    YTResponseBody responseBody;
+    ParcelableVideoItem videoResopnse;
     private Unbinder unbinder;
     private String videoID = RemoteConfigHelper.get().getYoutubeID();
+    private String playlistID = RemoteConfigHelper.get().getPlaylistID();
     private YouTubePlayer youtubePlayer;
+    private PlaylistVideoAdapter adapter;
 
 
-    public static WatchVideoFragment createInstance() {
-        return new WatchVideoFragment();
+    public static VideoPlaylistFragment createInstance() {
+        return new VideoPlaylistFragment();
     }
 
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_video_watch, container, false);
+        View view = inflater.inflate(R.layout.fragment_video_playlist, container, false);
         unbinder = ButterKnife.bind(this, view);
+
+        adapter = new PlaylistVideoAdapter();
+        adapter.setHasStableIds(true);
+        playlistRecycler.setHasFixedSize(true);
+        playlistRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+
 
         progress.setVisibility(View.VISIBLE);
         progress.animate()
@@ -106,7 +111,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
             f.initialize(OA1Config.getInstance(getActivity()).getYoutubeAPIKey(), this);
         }
 
-        LOG.debug("savedInstanceState is null: {}", savedInstanceState == null);
+     /*   LOG.debug("savedInstanceState is null: {}", savedInstanceState == null);
         if (savedInstanceState != null) {
             responseBody = OA1App.getApp()
                                  .getGson()
@@ -116,15 +121,19 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         if (responseBody == null) { // either there was an error saving, or there's no saved state
             getVideoInfo(videoID);
         } else {
-            bindResponseToView(responseBody);
-        }
+            populateMainVideoDetails(responseBody);
+        }*/
+
+        getVideoInfo(videoID);
+        getPlaylistInfo(videoID);
+
         return view;
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if(isVisibleToUser){
+        if (isVisibleToUser) {
             RemoteConfigHelper.get().fetch(false, new CompletionListener() {
                 @Override
                 public void onComplete(boolean wasSuccessful, @Nullable String youtubeID) {
@@ -154,18 +163,18 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         OA1Util.safeUnbind(unbinder);
     }
 
-    @Override
+    /*@Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         LOG.debug("saving state!");
         outState.putString(KEY_RESPONSE, OA1App.getApp().getGson().toJson(responseBody));
-    }
+    }*/
 
     @OnClick(R.id.watch_share)
     void onShareClick() {
         Intent share = new Intent(Intent.ACTION_SEND)
-                              .setType("text/plain")
-                              .putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=" + videoID);
+                             .setType("text/plain")
+                             .putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=" + videoID);
         startActivityForResult(Intent.createChooser(share, "Check out the 1@1 Action!"), 191817);
     }
 
@@ -178,11 +187,43 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     }
 
     private void getVideoInfo(String id) {
-        String url = BASE_URL.appendQueryParameter("id", id)
-                           .appendQueryParameter("key", OA1Config.getInstance(getActivity()).getYoutubeAPIKey())
-                           .toString();// equivalent of .build().toString();
-        HTTP_CLIENT.newCall(new Builder().url(url).build())
-              .enqueue(new BaseCallback());
+        API.getVideoList(id, new API.Callback<Video>() {
+            @Override
+            public void onFailure(IOException e) {
+                LOG.error("error loading vide list - ", e);
+            }
+
+            @Override
+            public void onSuccess(List<Video> videos) {
+                if (videos != null && videos.isEmpty()) {
+                    populateMainVideoDetails(videos.get(0));
+                }
+
+            }
+        });
+    }
+
+    private void getPlaylistInfo(String playlistID) {
+        API.getPlaylistItemList(playlistID, new Callback<PlaylistItem>() {
+            @Override
+            public void onFailure(IOException e) {
+                LOG.error("error obtaining playlist items: ", e);
+                playlistRecycler.animate()
+                      .alpha(0f)
+                      .withEndAction(new Runnable() {
+                          @Override
+                          public void run() {
+                              playlistRecycler.setVisibility(View.GONE);
+                          }
+                      })
+                      .start();
+            }
+
+            @Override
+            public void onSuccess(List<PlaylistItem> items) {
+                adapter.setList(items);
+            }
+        });
     }
 
     //Youtube callback
@@ -197,9 +238,9 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         } else {
             player.play();
         }
-        if(!BuildConfig.DEBUG){
+        if (!BuildConfig.DEBUG) {
             CustomEvent event = new CustomEvent("Youtube SDK Init")
-                                            .putCustomAttribute("success", "yes");
+                                      .putCustomAttribute("success", "yes");
             Answers.getInstance().logCustom(event);
         }
     }
@@ -208,7 +249,8 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     @Override
     public void onInitializationFailure(Provider provider, YouTubeInitializationResult errorReason) {
         LOG.error("Error initializing Youtube client: {}", errorReason);
-        if(getActivity() == null) return;if(!BuildConfig.DEBUG){
+        if (getActivity() == null) return;
+        if (!BuildConfig.DEBUG) {
             CustomEvent event = new CustomEvent("Youtube SDK Init")
                                       .putCustomAttribute("success", "no")
                                       .putCustomAttribute("reason", errorReason.name());
@@ -224,36 +266,30 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         }
     }
 
-    void bindResponseToView(YTResponseBody response) {
-        if(videoTitle == null || videoViewCount == null) {
+    void populateMainVideoDetails(Video video) {
+        if (videoTitle == null || videoViewCount == null) {
             LOG.error("Error - no UI!");
             return;
         }
         String title = null;
         String viewers = null;
-        responseBody = response;
-        if (response.items != null && response.items.size() > 0) {
-            YTItem videoItem = response.items.get(0); //blindly take first item; ideally, there should only be one anyway
-            if (videoItem.snippet != null && !TextUtils.isEmpty(videoItem.snippet.title)) {
-                title = videoItem.snippet.title;
-            }else{
-                LOG.warn("snippet.title is null!");
-            }
+        //TODO memoize video
 
-            NumberFormat numFormat = NumberFormat.getNumberInstance();
-            if (!TextUtils.isEmpty(videoItem.statistics.viewCount)) {
-                Number viewCount;
-                try {
-                    viewCount = Long.parseLong(videoItem.statistics.viewCount);
-                } catch (Exception e) {
-                    LOG.error("Error parsing {} to long - retrying as BigInt", videoItem.statistics.viewCount, e);
-                    viewCount = new BigInteger(videoItem.statistics.viewCount);
-                }
-                viewers = numFormat.format(viewCount);
-            } else {
-                LOG.warn("statistics.viewcount is null!");
-            }
+        VideoSnippet snippet = video.getSnippet();
+        if (snippet != null && !TextUtils.isEmpty(snippet.getTitle())) {
+            title = snippet.getTitle();
+        } else {
+            LOG.warn("snippet.title is null!");
         }
+
+        VideoStatistics statistics = video.getStatistics();
+        if (statistics != null && statistics.getViewCount() != null) {
+            NumberFormat numFormat = NumberFormat.getNumberInstance();
+            viewers = numFormat.format(statistics.getViewCount());
+        } else {
+            LOG.warn("statistics.viewcount is null!");
+        }
+
 
         if (TextUtils.isEmpty(title)) {
             title = "<Unknown Title>";
@@ -280,50 +316,62 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         videoViewCount.animate().alpha(1f).start();
     }
 
-    private class BaseCallback implements Callback{
+    static class PlaylistVideoAdapter extends Adapter<CellViewHolder> {
 
-        @Override
-        public void onFailure(Call call, IOException e) {
-            LOG.error("Error getting Youtube video data for {}", videoID, e);
-            if (!BuildConfig.DEBUG) {
-                Answers.getInstance()
-                      .logCustom(new CustomEvent("Youtube Response Code")
-                                       .putCustomAttribute("code", -1)
-                                       .putCustomAttribute("reason", e.getLocalizedMessage())
-                      );
-            }
+        private List<PlaylistItem> list = Collections.emptyList();
+
+        void setList(List<PlaylistItem> list) {
+            this.list = list;
+            notifyDataSetChanged();
         }
 
         @Override
-        public void onResponse(Call call, Response response) throws IOException {
-            if (!BuildConfig.DEBUG) {
-                Answers.getInstance()
-                      .logCustom(new CustomEvent("Youtube Response Code").putCustomAttribute("code", Integer.toString(response.code())));
-            }
-            if (response.isSuccessful()) {
-                LOG.debug("successfully obtained Youtube data");
-                try (ResponseBody body = response.body()) {
-                    Gson gson = OA1App.getApp().getGson();
-                    final YTResponseBody ytBody = gson.fromJson(body.charStream(), YTResponseBody.class);
-                    body.close();
-                    if (ytBody != null) {
-                        ThreadUtil.getInstance().runOnUIThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                onResponseParsed(ytBody);
-                            }
-                        });
-                    }
-                } catch (Exception e) {
-                    LOG.error("Error completing Youtube data call - ", e);
-                }
-            }
+        public CellViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View cell = LayoutInflater.from(parent.getContext())
+                              .inflate(R.layout.watch_video_playlist_cell, parent, false);
+            return new CellViewHolder(cell);
         }
 
-        @UiThread
-        void onResponseParsed(final YTResponseBody response) {
-            bindResponseToView(response);
+        @Override
+        public void onBindViewHolder(CellViewHolder holder, int position) {
+            PlaylistItem item = list.get(position);
+            holder.bind(item);
+        }
+
+        @Override
+        public int getItemCount() {
+            return list.size();
+        }
+
+
+        @Override
+        public long getItemId(int position) {
+            return list.get(position).getId().hashCode();
+        }
+
+        static class CellViewHolder extends ViewHolder {
+            @BindView(R.id.playlist_thumbnail) ImageView thumbnail;
+            @BindView(R.id.playlist_title) TypefaceTextView title;
+            @BindView(R.id.playlist_descr) TypefaceTextView description;
+
+            CellViewHolder(View itemView) {
+                super(itemView);
+                ButterKnife.bind(this, itemView);
+            }
+
+            void bind(PlaylistItem item) {
+                PlaylistItemSnippet snippet = item.getSnippet();
+
+                Glide.with(thumbnail.getContext())
+                      .load(snippet.getThumbnails().getStandard().getUrl())
+                      .crossFade()
+                      .placeholder(android.R.drawable.progress_indeterminate_horizontal)
+                      .fitCenter()
+                      .into(thumbnail);
+
+                title.setText(snippet.getTitle());
+                description.setText(snippet.getDescription());
+            }
         }
     }
 }
-*/

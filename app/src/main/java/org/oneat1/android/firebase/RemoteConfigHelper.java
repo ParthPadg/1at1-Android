@@ -4,7 +4,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.AnswersEvent;
 import com.crashlytics.android.answers.CustomEvent;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -25,7 +24,8 @@ public class RemoteConfigHelper {
     private final static Logger LOG = LoggerFactory.getLogger(RemoteConfigHelper.class);
 
     private static final long FIREBASE_FETCH_THRESHOLD = TimeUnit.MINUTES.toSeconds(15); //playing with fire, because server throttles at ~5+ requests per hour.
-    private static final String KEY_YOUTUBE_ID = "LiveVideoUrl";
+    private static final String KEY_YOUTUBE_VIDEO_ID = "LiveVideoUrl";
+    private static final String KEY_YOUTUBE_PLAYLIST = "VideoPlaylistID";
 
     private static RemoteConfigHelper sInstance;
     private final FirebaseRemoteConfig remoteConfigInstance;
@@ -55,10 +55,15 @@ public class RemoteConfigHelper {
                   public void onComplete(@NonNull Task<Void> task) {
                       remoteConfigInstance.activateFetched();
                       final boolean success;
-                      String id = null;
+                      String videoID = null;
+                      String playlistID = null;
                       if (success = task.isSuccessful()) {
                           LOG.debug("successful fetch!");
-                          id = remoteConfigInstance.getString(KEY_YOUTUBE_ID);
+
+                          //actually obtain the new IDs here
+                          videoID = remoteConfigInstance.getString(KEY_YOUTUBE_VIDEO_ID);
+                          playlistID = remoteConfigInstance.getString(KEY_YOUTUBE_PLAYLIST);
+
                           CustomEvent event = new CustomEvent("Firebase Fetch Status");
                           switch (remoteConfigInstance.getInfo().getLastFetchStatus()) {
                               case FirebaseRemoteConfig.LAST_FETCH_STATUS_SUCCESS:
@@ -84,16 +89,20 @@ public class RemoteConfigHelper {
                           LOG.error("Error while fetching remote config: ", exception);
                           if (!BuildConfig.DEBUG) {
                               CustomEvent event = new CustomEvent("Firebase Error")
-                                                        .putCustomAttribute("Message", exception == null ? "null" : exception .getLocalizedMessage());
+                                                        .putCustomAttribute("Message", exception == null ? "null" : exception.getLocalizedMessage());
                               Answers.getInstance().logCustom(event);
                           }
                       }
-                      listener.onComplete(success, id);
+                      listener.onComplete(success, videoID);
                   }
               });
     }
 
     public String getYoutubeID() {
-        return remoteConfigInstance.getString(KEY_YOUTUBE_ID);
+        return remoteConfigInstance.getString(KEY_YOUTUBE_VIDEO_ID);
+    }
+
+    public String getPlaylistID() {
+        return remoteConfigInstance.getString(KEY_YOUTUBE_PLAYLIST);
     }
 }

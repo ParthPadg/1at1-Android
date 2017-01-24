@@ -30,7 +30,6 @@ public class OA1Util {
 
     public static class ThreadUtil {
         private static ThreadUtil sInstance;
-        private static final Map<Runnable, Future<?>> futureMap = Collections.synchronizedMap(new WeakHashMap<Runnable, Future<?>>());
         private ScheduledExecutorService executor = null;
         private Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
@@ -46,9 +45,7 @@ public class OA1Util {
         }
 
         public Future runNowInBackground(Runnable runnable) {
-            Future<?> future = executor.submit(runnable);
-            futureMap.put(runnable, future);
-            return future;
+            return executor.submit(runnable);
         }
 
         public void runOnUIThread(Runnable runnable) {
@@ -56,17 +53,6 @@ public class OA1Util {
                 runnable.run();
             } else {
                 mainThreadHandler.post(runnable);
-            }
-        }
-
-        public void cancel(Runnable runnable) {
-            if (runnable == null) {
-                return;
-            }
-
-            Future<?> future = futureMap.remove(runnable);
-            if (future != null) {
-                future.cancel(true);
             }
         }
     }

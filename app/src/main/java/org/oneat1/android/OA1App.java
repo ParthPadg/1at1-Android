@@ -11,11 +11,13 @@ import com.google.gson.Gson;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
+import org.oneat1.android.util.API;
 import org.oneat1.android.util.CrashlyticsCrashAppender;
 import org.oneat1.android.firebase.RemoteConfigHelper;
 import org.oneat1.android.firebase.RemoteConfigHelper.CompletionListener;
 import org.oneat1.android.util.OA1Config;
 import org.oneat1.android.util.OA1Font;
+import org.oneat1.android.util.OA1Util.ThreadUtil;
 import org.oneat1.android.util.Prefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,12 +53,13 @@ public class OA1App extends Application {
     }
 
     public void init(){
+        ThreadUtil.getInstance();
         Prefs.init(this);
         OA1Config config = OA1Config.getInstance(this);
         initFabric(config);
-
         initFirebase();
         OA1Font.init();
+        API.init(this);
     }
 
     public Gson getGson(){

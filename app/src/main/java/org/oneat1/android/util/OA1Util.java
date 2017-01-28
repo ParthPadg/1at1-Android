@@ -1,11 +1,10 @@
 package org.oneat1.android.util;
 
+import android.app.Activity;
+import android.app.Fragment;
 import android.os.Handler;
 import android.os.Looper;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,8 +27,17 @@ public class OA1Util {
         }
     }
 
+    public static boolean isActivityFinishing(Activity activity){
+        return activity == null || activity.isFinishing() || activity.isDestroyed();
+    }
+
+    public static boolean isFragmentDetached(Fragment fragment){
+        return fragment != null && (isActivityFinishing(fragment.getActivity()) || fragment.isRemoving() || fragment.isDetached());
+    }
+
     public static class ThreadUtil {
         private static ThreadUtil sInstance;
+
         private ScheduledExecutorService executor = null;
         private Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 

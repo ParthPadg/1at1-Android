@@ -2,28 +2,35 @@ package org.oneat1.android.util;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.UiThread;
-import android.support.annotation.WorkerThread;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.GenericJson;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.YouTube.PlaylistItems;
-import com.google.api.services.youtube.model.PlaylistItem;
-import com.google.api.services.youtube.model.PlaylistItemListResponse;
-import com.google.api.services.youtube.model.Video;
-import com.google.api.services.youtube.model.VideoListResponse;
-
-import org.oneat1.android.util.OA1Util.ThreadUtil;
+import org.oneat1.android.model.PlaylistItemResponse;
+import org.oneat1.android.model.PlaylistItemResponse.PlaylistItem;
+import org.oneat1.android.model.VideoItemResponse;
+import org.oneat1.android.model.VideoItemResponse.VideoItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Single;
+import io.reactivex.functions.BiConsumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.OkHttpClient;
+import okhttp3.OkHttpClient.Builder;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.logging.HttpLoggingInterceptor.Level;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 /**
  * Created by parthpadgaonkar on 1/22/17.
@@ -32,99 +39,84 @@ import java.util.List;
 public class API {
     private final static Logger LOG = LoggerFactory.getLogger(API.class);
 
-    private static final YouTube YOUTUBE = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
-        @Override
-        public void initialize(HttpRequest request) throws IOException {
-        } // no op
-    }).setApplicationName("1@1").build();
-    private static YouTube.Videos.List VIDEO_LIST;
-    private static YouTube.PlaylistItems.List PLAYLIST_LIST;
+    interface YouTubeAPI {
+        @GET("videos?query=snippet,statistics&fields=items(id,snippet(title),statistics(viewCount))")
+        Single<VideoItemResponse> getVideoList(@Query("key") String apiKey, @Query("id") String videoID);
 
-    public interface Callback<T> {
-        @UiThread
-        void onFailure(IOException e);
-
-        @UiThread
-        void onSuccess(List<T> listResponse);
+        @GET("playlistItems?query=snippet&fields=nextPageToken,pageInfo,items(snippet(title,description,thumbnails(standard)))")
+        Observable<PlaylistItemResponse> getPlaylistItems(@Query("key") String apiKey,
+                                                               @Query("id") String playlistID,
+                                                               @Query("pageToken") @Nullable String pageToken);
     }
+
+    private static String youtubeAPIKey;
+    private static YouTubeAPI _api;
 
     public static void init(@NonNull Context context) {
         context = context.getApplicationContext();
-        String youtubeAPIKey = OA1Config.getInstance(context).getYoutubeAPIKey();
-        try {
-            VIDEO_LIST = YOUTUBE.videos()
-                               .list("snippet, statistics")
-                               .setFields("items(id,snippet(title),statistics(viewCount))")
-                               .setKey(youtubeAPIKey);
+        youtubeAPIKey = OA1Config.getInstance(context).getYoutubeAPIKey();
 
-            PLAYLIST_LIST = YOUTUBE.playlistItems()
-                                  .list("snippet")
-                                  .setKey(youtubeAPIKey)
-                                  .setFields("nextPageToken,pageInfo,items(snippet(title,description,thumbnails(standard)))");
-        } catch (IOException e) {
-            LOG.error("Error initializing Youtube APIs - ", e);
-        }
+        OkHttpClient okHttpClient = new Builder()
+                                          .addInterceptor(new HttpLoggingInterceptor().setLevel(Level.BASIC))
+                                          .build();
+
+        _api = new Retrofit.Builder()
+                     .client(okHttpClient)
+                     .baseUrl("https://www.googleapis.com/youtube/v3/")
+                     .addConverterFactory(GsonConverterFactory.create())
+                     .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+                     .validateEagerly(true)
+                     .build()
+                     .create(YouTubeAPI.class);
     }
 
-    public static void getVideoList(final String videoID, final API.Callback<Video> callback) {
-        ThreadUtil.getInstance().runNowInBackground(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    VideoListResponse list = VIDEO_LIST
-                                                   .setId(videoID)
-                                                   .execute();
-                    postToCallback(callback, list.getItems(), null);
-                } catch (IOException e) {
-                    LOG.error("Error getting video list - ", e);
-                    postToCallback(callback, null, e);
-                }
-            }
-        });
+    /**
+     * In the event that the YouTube v3 videos.list API returns more than 1 item for the VideoID query,
+     * this method will only emit the first item.
+     */
+    public static Single<VideoItem> getVideoList(final String videoID) {
+        return _api.getVideoList(youtubeAPIKey, videoID)
+                     .map(new Function<VideoItemResponse, VideoItem>() {
+                         @Override
+                         public VideoItem apply(VideoItemResponse container) throws Exception {
+                             //will throw NPE or bad index, but that's okay.
+                             LOG.debug("container has {} VideoItems", container.items.size());
+                             return container.items.get(0);
+                         }
+                     });
     }
 
-    public static void getPlaylistItemList(final String playlistID, final API.Callback<PlaylistItem> callback) {
-      ThreadUtil.getInstance().runNowInBackground(new Runnable() {
-          @Override
-          public void run() {
-              try {
-                  PlaylistItemListResponse response = PLAYLIST_LIST
-                                                            .setId(playlistID) //equivalent to .setPlaylistId
-                                                            .execute();
-                  List<PlaylistItem> items = new ArrayList<>(response.getPageInfo().getTotalResults());
-                  items.addAll(response.getItems());
-
-                  String token = response.getNextPageToken();
-                  while (token != null) {
-                      PlaylistItems.List modifiedRequest = PLAYLIST_LIST.setPageToken(token);
-                      PlaylistItemListResponse pagedResponse = modifiedRequest.execute();
-                      items.addAll(pagedResponse.getItems());
-                      token = pagedResponse.getNextPageToken();
-                  }
-
-                  postToCallback(callback, items, null);
-              } catch (IOException e) {
-                  LOG.error("Error getting playlist items list - ", e);
-                  postToCallback(callback, null, e);
-              }
-          }
-      });
-
+    public static Single<List<PlaylistItem>> getPlaylistItemList(final String playlistID) {
+        return getPlaylistItemList(playlistID, null)
+                     .collectInto(new LinkedList<PlaylistItem>(), new BiConsumer<LinkedList<PlaylistItem>, List<PlaylistItem>>() {
+                         @Override
+                         public void accept(LinkedList<PlaylistItem> accumulator, List<PlaylistItem> additionalList) throws Exception {
+                             accumulator.addAll(additionalList);
+                         }
+                     }) //not thrilled that this a little verbose, but LinkedList is good for an unknown number of items, and ArrayList is RandomAccess...what to do??
+                     .map(new Function<LinkedList<PlaylistItem>, List<PlaylistItem>>() {
+                         @Override
+                         public List<PlaylistItem> apply(LinkedList<PlaylistItem> linkedList) throws Exception {
+                             return new ArrayList<>(linkedList);
+                         }
+                     });
     }
 
-    @WorkerThread
-    static <T extends GenericJson> void postToCallback(final Callback<T> callback, final List<T> response, final IOException error) {
-        ThreadUtil.getInstance()
-              .runOnUIThread(new Runnable() {
-                  @Override
-                  public void run() {
-                      if (error == null) {
-                          callback.onSuccess(response);
-                      } else {
-                          callback.onFailure(error);
-                      }
-                  }
-              });
+    //could cause a stackoverflow if we recurse too deeply, but given that this playlist is going to have <50 items
+    // and the default page size is 12ish, I'm not worried about it.
+    private static Observable<List<PlaylistItem>> getPlaylistItemList(final String playlistID, String pageToken) {
+        return _api.getPlaylistItems(youtubeAPIKey, playlistID, pageToken)
+                     .retry(2)
+                     .concatMap(new Function<PlaylistItemResponse, ObservableSource<List<PlaylistItem>>>() {
+                         @Override
+                         public ObservableSource<List<PlaylistItem>> apply(PlaylistItemResponse response) throws Exception {
+                             Observable<List<PlaylistItem>> base = Observable.just(response.items);
+                             if (TextUtils.isEmpty(response.pageToken)) {
+                                 return base;
+                             } else {
+                                 return base.concatWith(getPlaylistItemList(playlistID, response.pageToken));
+                             }
+                         }
+                     });
     }
-
 }

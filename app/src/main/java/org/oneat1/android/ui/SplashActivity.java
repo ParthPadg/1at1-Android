@@ -26,7 +26,6 @@ public class SplashActivity extends Activity {
                 LOG.debug("init in background");
                 OA1App.getApp().init();
                 LOG.debug("Finishing init!");
-
                 bounceToRealScreen();
             }
         });

@@ -4,8 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,65 +27,62 @@ import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener;
 import com.google.android.youtube.player.YouTubePlayer.Provider;
 import com.google.android.youtube.player.YouTubePlayerFragment;
-import com.google.api.client.util.Collections2;
-import com.google.api.services.youtube.model.PlaylistItem;
-import com.google.api.services.youtube.model.PlaylistItemSnippet;
-import com.google.api.services.youtube.model.ThumbnailDetails;
-import com.google.api.services.youtube.model.Video;
-import com.google.api.services.youtube.model.VideoSnippet;
-import com.google.api.services.youtube.model.VideoStatistics;
-import com.twitter.sdk.android.core.internal.scribe.DefaultScribeClient;
 
 import org.oneat1.android.BuildConfig;
 import org.oneat1.android.R;
 import org.oneat1.android.firebase.RemoteConfigHelper;
-import org.oneat1.android.firebase.RemoteConfigHelper.CompletionListener;
-import org.oneat1.android.model.ParcelableVideoItem;
-import org.oneat1.android.ui.VideoPlaylistFragment.PlaylistVideoAdapter.CellViewHolder;
+import org.oneat1.android.firebase.RemoteConfigHelper.RemoteConfigValues;
+import org.oneat1.android.model.PlaylistItemResponse;
+import org.oneat1.android.model.PlaylistItemResponse.PlaylistItem;
+import org.oneat1.android.model.VideoItemResponse.VideoItem;
 import org.oneat1.android.util.API;
-import org.oneat1.android.util.API.Callback;
 import org.oneat1.android.util.OA1Config;
 import org.oneat1.android.util.OA1Util;
-import org.oneat1.android.util.PlayerStateChangeListenerAdapter;
 import org.oneat1.android.util.TypefaceTextView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiConsumer;
+import io.reactivex.functions.BiFunction;
 
 /**
  * Created by parthpadgaonkar on 1/8/17.
  */
 public class VideoPlaylistFragment extends Fragment implements OnInitializedListener {
     private final static Logger LOG = LoggerFactory.getLogger(VideoPlaylistFragment.class);
-    private static final String KEY_RESPONSE = "watch.youtube.response";
+    private static final String KEY_VIDEO_RESPONSE= "watch.youtube.video.response";
+    private static final String KEY_PLAYLIST_RESPONSE = "watch.youtube.playlist.response";
 
     @BindView(R.id.watch_title) TypefaceTextView videoTitle;
     @BindView(R.id.watch_viewercount) TypefaceTextView videoViewCount;
     @BindView(R.id.watch_progress) ProgressBar progress;
     @BindView(R.id.watch_playlist) RecyclerView playlistRecycler;
 
-    ParcelableVideoItem videoResopnse;
     private Unbinder unbinder;
-    private String videoID = RemoteConfigHelper.get().getYoutubeID();
-    private String playlistID = RemoteConfigHelper.get().getPlaylistID();
     private YouTubePlayer youtubePlayer;
     private PlaylistVideoAdapter adapter;
+    private String videoID;
+    private String playlistID;
 
+    VideoItem memoizedVideo;
+    List<PlaylistItem> memoizedPlaylistItems;
+    Disposable subscription;
 
     public static VideoPlaylistFragment createInstance() {
         return new VideoPlaylistFragment();
     }
-
 
     @Nullable
     @Override
@@ -97,7 +94,6 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
         adapter.setHasStableIds(true);
         playlistRecycler.setHasFixedSize(true);
         playlistRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
-
 
         progress.setVisibility(View.VISIBLE);
         progress.animate()
@@ -111,21 +107,22 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
             f.initialize(OA1Config.getInstance(getActivity()).getYoutubeAPIKey(), this);
         }
 
-     /*   LOG.debug("savedInstanceState is null: {}", savedInstanceState == null);
-        if (savedInstanceState != null) {
-            responseBody = OA1App.getApp()
-                                 .getGson()
-                                 .fromJson(savedInstanceState.getString(KEY_RESPONSE), YTResponseBody.class);
+        if(savedInstanceState != null){
+            memoizedVideo = savedInstanceState.getParcelable(KEY_VIDEO_RESPONSE);
+            memoizedPlaylistItems = savedInstanceState.getParcelableArrayList(KEY_PLAYLIST_RESPONSE);
         }
 
-        if (responseBody == null) { // either there was an error saving, or there's no saved state
-            getVideoInfo(videoID);
-        } else {
-            populateMainVideoDetails(responseBody);
-        }*/
+        //okay for this to be blocking because we're requesting NO NETWORK
+        RemoteConfigValues val = RemoteConfigHelper.get().fetch(false, false).blockingGet();
+        videoID = val.getVideoID();
+        playlistID = val.getPlaylistID();
 
-        getVideoInfo(videoID);
-        getPlaylistInfo(videoID);
+        if(memoizedVideo == null || memoizedPlaylistItems == null){
+            getAllVideoInfo();
+        }else{
+            populateMainVideoDetails(memoizedVideo);
+            populateAdapter(memoizedPlaylistItems);
+        }
 
         return view;
     }
@@ -134,48 +131,37 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            RemoteConfigHelper.get().fetch(false, new CompletionListener() {
-                @Override
-                public void onComplete(boolean wasSuccessful, @Nullable String youtubeID) {
-                    if (wasSuccessful) {
-                        if (youtubeID != null && !Objects.equals(videoID, youtubeID)) { //new value!
-                            videoID = youtubeID;
-                            if (youtubePlayer != null && youtubePlayer.isPlaying()) {
-                                youtubePlayer.setPlayerStateChangeListener(new PlayerStateChangeListenerAdapter() {
-                                    @Override
-                                    public void onVideoEnded() {
-                                        youtubePlayer.cueVideo(videoID);
-                                    }
-                                });
-                            } else if (youtubePlayer != null) {
-                                youtubePlayer.cueVideo(youtubeID);
-                            } //nothing we can do; no UI :(
-                        }
-                    }
-                }
-            });
+            RemoteConfigHelper.get()
+                  .fetch(false, true)
+                  .subscribe(new BiConsumer<RemoteConfigValues, Throwable>() {
+                      @Override
+                      public void accept(RemoteConfigValues newValues, Throwable throwable) throws Exception {
+                          if (throwable != null) {
+                              LOG.error("Error obtaining new RemoteConfig values! falling back to old ones!");
+                              return;
+                          }
+
+                          videoID = newValues.getVideoID();
+                          playlistID = newValues.getPlaylistID();
+
+                          if (youtubePlayer != null) {
+                              if (youtubePlayer.isPlaying()) {
+                                  youtubePlayer.loadVideo(videoID);
+                              } else {
+                                  youtubePlayer.cueVideo(videoID);
+                              }
+                          } // the player isn't loaded - we'll just have to wait :(
+                      }
+                  });
         }
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        OA1Util.safeUnbind(unbinder);
-    }
-
-    /*@Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         LOG.debug("saving state!");
-        outState.putString(KEY_RESPONSE, OA1App.getApp().getGson().toJson(responseBody));
-    }*/
-
-    @OnClick(R.id.watch_share)
-    void onShareClick() {
-        Intent share = new Intent(Intent.ACTION_SEND)
-                             .setType("text/plain")
-                             .putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=" + videoID);
-        startActivityForResult(Intent.createChooser(share, "Check out the 1@1 Action!"), 191817);
+        outState.putParcelable(KEY_VIDEO_RESPONSE, memoizedVideo);
+        outState.putParcelableArrayList(KEY_PLAYLIST_RESPONSE, (ArrayList<? extends Parcelable>) memoizedPlaylistItems); //we're pretty damned sure it's an ArrayList
     }
 
     @Override
@@ -186,42 +172,74 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
         }
     }
 
-    private void getVideoInfo(String id) {
-        API.getVideoList(id, new API.Callback<Video>() {
-            @Override
-            public void onFailure(IOException e) {
-                LOG.error("error loading vide list - ", e);
-            }
-
-            @Override
-            public void onSuccess(List<Video> videos) {
-                if (videos != null && videos.isEmpty()) {
-                    populateMainVideoDetails(videos.get(0));
-                }
-
-            }
-        });
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        OA1Util.safeUnbind(unbinder);
+        subscription.dispose();
     }
 
-    private void getPlaylistInfo(String playlistID) {
-        API.getPlaylistItemList(playlistID, new Callback<PlaylistItem>() {
-            @Override
-            public void onFailure(IOException e) {
-                LOG.error("error obtaining playlist items: ", e);
-                playlistRecycler.animate()
-                      .alpha(0f)
-                      .withEndAction(new Runnable() {
-                          @Override
-                          public void run() {
-                              playlistRecycler.setVisibility(View.GONE);
-                          }
-                      })
-                      .start();
-            }
+    @OnClick(R.id.watch_share)
+    void onShareClick() {
+        Intent share = new Intent(Intent.ACTION_SEND)
+                             .setType("text/plain")
+                             .putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=" + videoID);
+        startActivityForResult(Intent.createChooser(share, "Check out the 1@1 Action!"), 191817);
+    }
 
+    private void getAllVideoInfo() {
+        Single<VideoItem> videoObservable =
+              API.getVideoList(videoID)
+                    .retry(2)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnEvent(new BiConsumer<VideoItem, Throwable>() {
+                        @Override
+                        public void accept(VideoItem videoItem, Throwable throwable) throws Exception {
+                            if (throwable != null) {
+                                LOG.error("Error while loading video list!", throwable);
+                            } else {
+                                populateMainVideoDetails(videoItem);
+                            }
+                        }
+                    });
+
+        Single<List<PlaylistItem>> playlistObservable =
+              API.getPlaylistItemList(playlistID)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnEvent(new BiConsumer<List<PlaylistItem>, Throwable>() {
+                        @Override
+                        public void accept(List<PlaylistItem> playlistItems, Throwable throwable) throws Exception {
+                            if (throwable != null) {
+                                LOG.error("error obtaining playlist items: ", throwable);
+                                if (OA1Util.isFragmentDetached(VideoPlaylistFragment.this))
+                                    return;
+                                playlistRecycler.animate()
+                                      .alpha(0f)
+                                      .withEndAction(new Runnable() {
+                                          @Override
+                                          public void run() {
+                                              playlistRecycler.setVisibility(View.GONE);
+                                          }
+                                      })
+                                      .start();
+                            } else {
+                                populateAdapter(playlistItems);
+                            }
+
+                        }
+                    });
+
+        subscription = Single.zip(videoObservable, playlistObservable, new BiFunction<VideoItem, List<PlaylistItem>, Object>() {
             @Override
-            public void onSuccess(List<PlaylistItem> items) {
-                adapter.setList(items);
+            public Object apply(VideoItem videoItem, List<PlaylistItem> playlistItems) throws Exception {
+                return Boolean.TRUE; //we don't care about the result of the zip; we just wanted to kick off the two network calls
+            }
+        }).subscribe(new BiConsumer<Object, Throwable>() {
+            @Override
+            public void accept(Object o, Throwable throwable) throws Exception {
+                if (throwable != null) {
+                    //TODO
+                }
             }
         });
     }
@@ -266,26 +284,27 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
         }
     }
 
-    void populateMainVideoDetails(Video video) {
+    void populateMainVideoDetails(VideoItem video) {
         if (videoTitle == null || videoViewCount == null) {
             LOG.error("Error - no UI!");
             return;
         }
         String title = null;
         String viewers = null;
-        //TODO memoize video
+        memoizedVideo = video;
 
-        VideoSnippet snippet = video.getSnippet();
-        if (snippet != null && !TextUtils.isEmpty(snippet.getTitle())) {
-            title = snippet.getTitle();
+
+        VideoItem.Snippet snippet = video.snippet;
+        if (snippet != null && !TextUtils.isEmpty(snippet.title)) {
+            title = snippet.title;
         } else {
             LOG.warn("snippet.title is null!");
         }
 
-        VideoStatistics statistics = video.getStatistics();
-        if (statistics != null && statistics.getViewCount() != null) {
+        VideoItem.Statistics statistics = video.statistics;
+        if (statistics != null && statistics.viewCount != null) {
             NumberFormat numFormat = NumberFormat.getNumberInstance();
-            viewers = numFormat.format(statistics.getViewCount());
+            viewers = numFormat.format(statistics.viewCount);
         } else {
             LOG.warn("statistics.viewcount is null!");
         }
@@ -316,11 +335,16 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
         videoViewCount.animate().alpha(1f).start();
     }
 
-    static class PlaylistVideoAdapter extends Adapter<CellViewHolder> {
+    void populateAdapter(List<PlaylistItem> list) {
+        adapter.setList(list);
+        memoizedPlaylistItems = list;
+    }
+
+    static class PlaylistVideoAdapter extends Adapter<PlaylistVideoAdapter.CellViewHolder> {
 
         private List<PlaylistItem> list = Collections.emptyList();
 
-        void setList(List<PlaylistItem> list) {
+        void setList(List<PlaylistItemResponse.PlaylistItem> list) {
             this.list = list;
             notifyDataSetChanged();
         }
@@ -343,12 +367,6 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
             return list.size();
         }
 
-
-        @Override
-        public long getItemId(int position) {
-            return list.get(position).getId().hashCode();
-        }
-
         static class CellViewHolder extends ViewHolder {
             @BindView(R.id.playlist_thumbnail) ImageView thumbnail;
             @BindView(R.id.playlist_title) TypefaceTextView title;
@@ -360,17 +378,16 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
             }
 
             void bind(PlaylistItem item) {
-                PlaylistItemSnippet snippet = item.getSnippet();
-
+                PlaylistItem.Snippet snippet = item.snippet;
                 Glide.with(thumbnail.getContext())
-                      .load(snippet.getThumbnails().getStandard().getUrl())
+                      .load(snippet.thumbnails.standard.url) //todo make this not as scary
                       .crossFade()
                       .placeholder(android.R.drawable.progress_indeterminate_horizontal)
                       .fitCenter()
                       .into(thumbnail);
 
-                title.setText(snippet.getTitle());
-                description.setText(snippet.getDescription());
+                title.setText(snippet.title);
+                description.setText(snippet.description);
             }
         }
     }

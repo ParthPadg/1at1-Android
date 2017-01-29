@@ -47,11 +47,11 @@ public class VideoItemResponse implements Parcelable {
         }
 
         public static class Statistics implements Parcelable {
-            public String viewCount;
+            public long viewCount;
 
             @Override
             public void writeToParcel(Parcel dest, int flags) {
-                dest.writeString(viewCount);
+                dest.writeLong(viewCount);
             }
 
             @Override
@@ -63,7 +63,7 @@ public class VideoItemResponse implements Parcelable {
                 @Override
                 public Statistics createFromParcel(Parcel in) {
                     Statistics s = new Statistics();
-                    s.viewCount = in.readString();
+                    s.viewCount = in.readLong();
                     return s;
                 }
 

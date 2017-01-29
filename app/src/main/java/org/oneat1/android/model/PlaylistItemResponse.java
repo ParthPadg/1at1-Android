@@ -9,45 +9,12 @@ import java.util.List;
  * Created by parthpadgaonkar on 1/23/17.
  */
 public class PlaylistItemResponse implements Parcelable {
-    public String pageToken;
-    //    public PageInfo pageInfo;
+    public String nextPageToken;
     public List<PlaylistItem> items;
-
-    //TODO unclear if we need this
-    /*public static class PageInfo implements Parcelable {
-        public int resultsPerPage;
-        public int totalResults;
-
-
-        public static final Creator<PageInfo> CREATOR = new Creator<PageInfo>() {
-            @Override
-            public PageInfo createFromParcel(Parcel in) {
-                PageInfo pageInfo = new PageInfo();
-                pageInfo.resultsPerPage = in.readInt();
-                pageInfo.totalResults = in.readInt();
-                return pageInfo;
-            }
-
-            @Override
-            public PageInfo[] newArray(int size) {
-                return new PageInfo[size];
-            }
-        };
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-            dest.writeInt(resultsPerPage);
-            dest.writeInt(totalResults);
-        }
-    }*/
 
     public static class PlaylistItem implements Parcelable {
         public Snippet snippet;
+        public String id;
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
@@ -173,7 +140,7 @@ public class PlaylistItemResponse implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(pageToken);
+        dest.writeString(nextPageToken);
         dest.writeTypedList(items);
     }
 
@@ -186,7 +153,7 @@ public class PlaylistItemResponse implements Parcelable {
         @Override
         public PlaylistItemResponse createFromParcel(Parcel in) {
             PlaylistItemResponse response = new PlaylistItemResponse();
-            response.pageToken = in.readString();
+            response.nextPageToken = in.readString();
             response.items = in.createTypedArrayList(PlaylistItem.CREATOR);
             return response;
         }

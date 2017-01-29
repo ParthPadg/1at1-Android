@@ -13,66 +13,76 @@
         android:name="com.google.android.youtube.player.YouTubePlayerFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:layout_height="240dp"
-    />
+        tools:layout="@android:layout/simple_gallery_item"
+        tools:layout_height="240dp"/>
 
-    <ProgressBar
-        android:id="@+id/watch_progress"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
-        android:indeterminate="true"
-    />
+    <ScrollView android:layout_width="match_parent" android:layout_height="wrap_content">
 
-    <org.oneat1.android.util.TypefaceTextView
-        android:id="@+id/watch_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
-        android:textColor="@color/cherryRed"
-        android:textSize="14sp"
-        android:visibility="gone"
-        app:typeface="font_helvetica_bold"
-        tools:text="ffff dddd sss ggg "/>
-
-    <org.oneat1.android.util.TypefaceTextView
-        android:id="@+id/watch_viewercount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="5dp"
-        android:textColor="#9c9c9c"
-        android:visibility="gone"
-        app:typeface="font_helvetica_regular"
-        tools:text="@string/watch_num_viewers"/>
-
-    <com.balysv.materialripple.MaterialRippleLayout
-        android:id="@+id/watch_share"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_marginTop="20dp"
-        android:background="@color/darkBlue"
-        app:mrl_rippleOverlay="true">
-
-        <org.oneat1.android.util.TypefaceTextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:drawablePadding="10dp"
-            android:drawableStart="@drawable/share"
-            android:text="Share"
-            android:textColor="@android:color/white"
-        />
-    </com.balysv.materialripple.MaterialRippleLayout>
+            android:orientation="vertical">
+            <ProgressBar
+                android:id="@+id/watch_progress"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:indeterminate="true"
+            />
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/watch_playlist"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-    />
+            <org.oneat1.android.util.TypefaceTextView
+                android:id="@+id/watch_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:textColor="@color/cherryRed"
+                android:textSize="14sp"
+                android:visibility="gone"
+                app:typeface="font_helvetica_bold"
+                tools:text="ffff dddd sss ggg "/>
+
+            <org.oneat1.android.util.TypefaceTextView
+                android:id="@+id/watch_viewercount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:textColor="#9c9c9c"
+                android:visibility="gone"
+                app:typeface="font_helvetica_regular"
+                tools:text="@string/watch_num_viewers"/>
+
+            <com.balysv.materialripple.MaterialRippleLayout
+                android:id="@+id/watch_share"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="20dp"
+                android:background="@color/darkBlue"
+                app:mrl_rippleOverlay="true">
+
+                <org.oneat1.android.util.TypefaceTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:drawablePadding="10dp"
+                    android:drawableStart="@drawable/share"
+                    android:text="Share"
+                    android:textColor="@android:color/white"
+                />
+            </com.balysv.materialripple.MaterialRippleLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/watch_playlist"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="12dp"
+            />
+        </LinearLayout>
+    </ScrollView>
+
 
 </LinearLayout>

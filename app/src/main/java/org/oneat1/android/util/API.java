@@ -13,8 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
@@ -40,12 +43,12 @@ public class API {
     private final static Logger LOG = LoggerFactory.getLogger(API.class);
 
     interface YouTubeAPI {
-        @GET("videos?query=snippet,statistics&fields=items(id,snippet(title),statistics(viewCount))")
+        @GET("videos?part=snippet,statistics&fields=items(id,snippet(title),statistics(viewCount))")
         Single<VideoItemResponse> getVideoList(@Query("key") String apiKey, @Query("id") String videoID);
 
-        @GET("playlistItems?query=snippet&fields=nextPageToken,pageInfo,items(snippet(title,description,thumbnails(standard)))")
+        @GET("playlistItems?part=snippet&fields=nextPageToken,pageInfo,items(snippet(title,description,thumbnails(standard)))")
         Observable<PlaylistItemResponse> getPlaylistItems(@Query("key") String apiKey,
-                                                               @Query("id") String playlistID,
+                                                               @Query("playlistId") String playlistID,
                                                                @Query("pageToken") @Nullable String pageToken);
     }
 
@@ -59,7 +62,6 @@ public class API {
         OkHttpClient okHttpClient = new Builder()
                                           .addInterceptor(new HttpLoggingInterceptor().setLevel(Level.BASIC))
                                           .build();
-
         _api = new Retrofit.Builder()
                      .client(okHttpClient)
                      .baseUrl("https://www.googleapis.com/youtube/v3/")
@@ -90,31 +92,37 @@ public class API {
         return getPlaylistItemList(playlistID, null)
                      .collectInto(new LinkedList<PlaylistItem>(), new BiConsumer<LinkedList<PlaylistItem>, List<PlaylistItem>>() {
                          @Override
-                         public void accept(LinkedList<PlaylistItem> accumulator, List<PlaylistItem> additionalList) throws Exception {
-                             accumulator.addAll(additionalList);
+                         public void accept(LinkedList<PlaylistItem> accumulator, List<PlaylistItem> toAdd) throws Exception {
+                             accumulator.addAll(toAdd);
                          }
-                     }) //not thrilled that this a little verbose, but LinkedList is good for an unknown number of items, and ArrayList is RandomAccess...what to do??
+                     })
+                     //not thrilled that this a little verbose, but LinkedList is good for an unknown number of items, and ArrayList is RandomAccess...what to do??
                      .map(new Function<LinkedList<PlaylistItem>, List<PlaylistItem>>() {
                          @Override
-                         public List<PlaylistItem> apply(LinkedList<PlaylistItem> linkedList) throws Exception {
-                             return new ArrayList<>(linkedList);
+                         public List<PlaylistItem> apply(LinkedList<PlaylistItem> items) throws Exception {
+                             ArrayList<PlaylistItem> list = new ArrayList<>(items.size());
+                             //allocates a ListIterator, but avoids allocating an entire Object[] as transient data store
+                             for (Iterator<PlaylistItem> iterator = items.listIterator(); iterator.hasNext(); ) {
+                                 list.add(iterator.next());
+                             }
+                             return list;
                          }
                      });
     }
 
     //could cause a stackoverflow if we recurse too deeply, but given that this playlist is going to have <50 items
     // and the default page size is 12ish, I'm not worried about it.
-    private static Observable<List<PlaylistItem>> getPlaylistItemList(final String playlistID, String pageToken) {
+    private static Observable<List<PlaylistItem>> getPlaylistItemList(final String playlistID, final String pageToken) {
         return _api.getPlaylistItems(youtubeAPIKey, playlistID, pageToken)
                      .retry(2)
                      .concatMap(new Function<PlaylistItemResponse, ObservableSource<List<PlaylistItem>>>() {
                          @Override
                          public ObservableSource<List<PlaylistItem>> apply(PlaylistItemResponse response) throws Exception {
                              Observable<List<PlaylistItem>> base = Observable.just(response.items);
-                             if (TextUtils.isEmpty(response.pageToken)) {
+                             if (TextUtils.isEmpty(response.nextPageToken)) {
                                  return base;
                              } else {
-                                 return base.concatWith(getPlaylistItemList(playlistID, response.pageToken));
+                                 return Observable.concat(base, getPlaylistItemList(playlistID, response.nextPageToken));
                              }
                          }
                      });

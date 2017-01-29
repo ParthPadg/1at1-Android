@@ -10,6 +10,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 import org.oneat1.android.BuildConfig;
 import org.oneat1.android.R;
@@ -50,6 +51,9 @@ public class RemoteConfigHelper {
     private RemoteConfigHelper() {
         remoteConfigInstance = FirebaseRemoteConfig.getInstance();
         remoteConfigInstance.setDefaults(R.xml.firebase_defaults);
+        remoteConfigInstance.setConfigSettings(new FirebaseRemoteConfigSettings.Builder()
+                                                     .setDeveloperModeEnabled(BuildConfig.DEBUG)
+                                                     .build());
     }
 
     /**

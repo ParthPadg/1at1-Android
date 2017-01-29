@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
@@ -56,6 +57,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.BiFunction;
+import io.reactivex.functions.Consumer;
 
 /**
  * Created by parthpadgaonkar on 1/8/17.
@@ -91,8 +93,9 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
         unbinder = ButterKnife.bind(this, view);
 
         adapter = new PlaylistVideoAdapter();
-        adapter.setHasStableIds(true);
-        playlistRecycler.setHasFixedSize(true);
+        playlistRecycler.setAdapter(adapter);
+        playlistRecycler.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.HORIZONTAL));
+        playlistRecycler.setHasFixedSize(false);
         playlistRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         progress.setVisibility(View.VISIBLE);
@@ -107,7 +110,7 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
             f.initialize(OA1Config.getInstance(getActivity()).getYoutubeAPIKey(), this);
         }
 
-        if(savedInstanceState != null){
+        if (savedInstanceState != null) {
             memoizedVideo = savedInstanceState.getParcelable(KEY_VIDEO_RESPONSE);
             memoizedPlaylistItems = savedInstanceState.getParcelableArrayList(KEY_PLAYLIST_RESPONSE);
         }
@@ -117,10 +120,10 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
         videoID = val.getVideoID();
         playlistID = val.getPlaylistID();
 
-        if(memoizedVideo == null || memoizedPlaylistItems == null){
+        if (memoizedVideo == null || memoizedPlaylistItems == null) {
             getAllVideoInfo();
-        }else{
-            populateMainVideoDetails(memoizedVideo);
+        } else {
+            populateMainVideoDetails(memoizedVideo); //TODO debug
             populateAdapter(memoizedPlaylistItems);
         }
 
@@ -141,14 +144,20 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
                               return;
                           }
 
-                          videoID = newValues.getVideoID();
-                          playlistID = newValues.getPlaylistID();
+                          String newVideoID = newValues.getVideoID();
+                          String newPlaylistID = newValues.getPlaylistID();
+                          if (newVideoID != null) {
+                              videoID = newVideoID;
+                          }
+                          if (newPlaylistID != null) {
+                              playlistID = newVideoID;
+                          }
 
                           if (youtubePlayer != null) {
                               if (youtubePlayer.isPlaying()) {
-                                  youtubePlayer.loadVideo(videoID);
+                                  youtubePlayer.loadVideo(VideoPlaylistFragment.this.videoID);
                               } else {
-                                  youtubePlayer.cueVideo(videoID);
+                                  youtubePlayer.cueVideo(VideoPlaylistFragment.this.videoID);
                               }
                           } // the player isn't loaded - we'll just have to wait :(
                       }
@@ -176,7 +185,9 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
     public void onDestroyView() {
         super.onDestroyView();
         OA1Util.safeUnbind(unbinder);
-        subscription.dispose();
+        if(subscription != null){
+            subscription.dispose();
+        }
     }
 
     @OnClick(R.id.watch_share)
@@ -188,18 +199,14 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
     }
 
     private void getAllVideoInfo() {
-        Single<VideoItem> videoObservable =
+       Single<VideoItem> videoObservable =
               API.getVideoList(videoID)
                     .retry(2)
                     .observeOn(AndroidSchedulers.mainThread())
-                    .doOnEvent(new BiConsumer<VideoItem, Throwable>() {
+                    .doOnSuccess(new Consumer<VideoItem>() {
                         @Override
-                        public void accept(VideoItem videoItem, Throwable throwable) throws Exception {
-                            if (throwable != null) {
-                                LOG.error("Error while loading video list!", throwable);
-                            } else {
-                                populateMainVideoDetails(videoItem);
-                            }
+                        public void accept(VideoItem videoItem) throws Exception {
+                            populateMainVideoDetails(videoItem);
                         }
                     });
 
@@ -223,6 +230,7 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
                                       })
                                       .start();
                             } else {
+                                playlistRecycler.setVisibility(View.VISIBLE);
                                 populateAdapter(playlistItems);
                             }
 
@@ -302,7 +310,7 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
         }
 
         VideoItem.Statistics statistics = video.statistics;
-        if (statistics != null && statistics.viewCount != null) {
+        if (statistics != null && statistics.viewCount != Long.MIN_VALUE) {
             NumberFormat numFormat = NumberFormat.getNumberInstance();
             viewers = numFormat.format(statistics.viewCount);
         } else {

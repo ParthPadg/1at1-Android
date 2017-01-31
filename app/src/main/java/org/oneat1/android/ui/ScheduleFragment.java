@@ -49,7 +49,6 @@ import butterknife.Unbinder;
 
 public class ScheduleFragment extends Fragment {
 
-    @BindView(R.id.schedule_datetime) TypefaceTextView scheduleDatetime;
     private Unbinder unbinder;
 
     public static ScheduleFragment newInstance() {
@@ -62,19 +61,6 @@ public class ScheduleFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.layout_fragment_schedule, container, false);
         unbinder = ButterKnife.bind(this, view);
-        Calendar instance = GregorianCalendar.getInstance();
-        instance.set(2017, 0, 21, 13, 0);
-        instance.setTimeZone(TimeZone.getTimeZone("America/New_York"));
-
-        boolean is12Hr = !DateFormat.is24HourFormat(getActivity());
-
-        SimpleDateFormat formatter = new SimpleDateFormat("MMM dd, yyyy / " + (is12Hr ? 'h' : 'H') + ":mm aa zzz", Locale.getDefault());
-        formatter.setTimeZone(TimeZone.getDefault());
-        SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.schedule_text, formatter.format(new Date(instance
-                                                                                                                                  .getTimeInMillis()))));
-        ssb.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.darkBlue)), 13, 15, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-        scheduleDatetime.setText(ssb);
-
         return view;
     }
 

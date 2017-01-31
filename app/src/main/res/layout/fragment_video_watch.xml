@@ -70,6 +70,8 @@
                 android:drawableStart="@drawable/share"
                 android:text="Share"
                 android:textColor="@android:color/white"
+                android:textSize="14sp"
+                app:typeface="font_helvetica_regular"
             />
         </com.balysv.materialripple.MaterialRippleLayout>
 

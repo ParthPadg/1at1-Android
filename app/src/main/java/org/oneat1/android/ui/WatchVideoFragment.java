@@ -76,15 +76,14 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     @BindView(R.id.watch_progress) ProgressBar progress;
 
     YTResponseBody responseBody;
+    boolean requestedYoutubeInfo = false;
     private Unbinder unbinder;
     private String videoID = RemoteConfigHelper.get().getYoutubeID();
     private YouTubePlayer youtubePlayer;
 
-
     public static WatchVideoFragment createInstance() {
         return new WatchVideoFragment();
     }
-
 
     @Nullable
     @Override
@@ -111,34 +110,41 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
                                  .fromJson(savedInstanceState.getString(KEY_RESPONSE), YTResponseBody.class);
         }
 
-        if (responseBody == null) { // either there was an error saving, or there's no saved state
-            getVideoInfo(videoID);
-        } else {
+        if (responseBody != null) {
             bindResponseToView(responseBody);
+        } else {
+            getVideoInfo();
         }
+
         return view;
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if(isVisibleToUser){
+        if (isVisibleToUser) {
             RemoteConfigHelper.get().fetch(false, new CompletionListener() {
                 @Override
                 public void onComplete(boolean wasSuccessful, @Nullable String youtubeID) {
-                    if (wasSuccessful) {
-                        if (youtubeID != null && !Objects.equals(videoID, youtubeID)) { //new value!
+                    if (wasSuccessful && youtubeID != null) {
+                        if (!Objects.equals(videoID, youtubeID)) { //new value!
                             videoID = youtubeID;
-                            if (youtubePlayer != null && youtubePlayer.isPlaying()) {
-                                youtubePlayer.setPlayerStateChangeListener(new PlayerStateChangeListenerAdapter() {
-                                    @Override
-                                    public void onVideoEnded() {
-                                        youtubePlayer.cueVideo(videoID);
-                                    }
-                                });
-                            } else if (youtubePlayer != null) {
-                                youtubePlayer.cueVideo(youtubeID);
+                            getVideoInfo(); // we have a new value; we have to update
+                            if (youtubePlayer != null) {
+                                if (youtubePlayer.isPlaying()) {
+                                    youtubePlayer.setPlayerStateChangeListener(new PlayerStateChangeListenerAdapter() {
+                                        @Override
+                                        public void onVideoEnded() {
+                                            if (youtubePlayer == null) return;
+                                            youtubePlayer.cueVideo(videoID);
+                                        }
+                                    });
+                                } else {
+                                    youtubePlayer.cueVideo(youtubeID);
+                                }
                             } //nothing we can do; no UI :(
+                        } else if (!requestedYoutubeInfo) {
+                            getVideoInfo(); // need to populate the Youtube info
                         }
                     }
                 }
@@ -149,6 +155,8 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        youtubePlayer.release();
+        youtubePlayer = null;
         OA1Util.safeUnbind(unbinder);
     }
 
@@ -164,7 +172,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         Intent share = new Intent(Intent.ACTION_SEND)
                               .setType("text/plain")
                               .putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=" + videoID);
-        startActivityForResult(Intent.createChooser(share, "Check out the 1@1 Action!"), 191817);
+        startActivityForResult(Intent.createChooser(share, "Share this week's 1@1 action!"), 191817);
     }
 
     @Override
@@ -175,8 +183,9 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         }
     }
 
-    private void getVideoInfo(String id) {
-        String url = BASE_URL.appendQueryParameter("id", id)
+    private void getVideoInfo() {
+        requestedYoutubeInfo = true;
+        String url = BASE_URL.appendQueryParameter("id", videoID)
                            .appendQueryParameter("key", OA1Config.getInstance(getActivity()).getYoutubeAPIKey())
                            .toString();// equivalent of .build().toString();
         HTTP_CLIENT.newCall(new Builder().url(url).build())
@@ -271,6 +280,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         progress.animate().alpha(0).withEndAction(new Runnable() {
             @Override
             public void run() {
+                if (progress == null) return;
                 progress.setVisibility(View.GONE);
             }
         }).start();

@@ -34,6 +34,7 @@ public class MainActivity extends Activity {
         ButterKnife.bind(this);
 
         viewpager.setAdapter(pagerAdapter = new MainPagerAdapter(getFragmentManager()));
+        viewpager.setOffscreenPageLimit(1);
         setupWithViewPager(tabs, viewpager);
     }
 

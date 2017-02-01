@@ -13,8 +13,10 @@ import android.widget.Toast;
 
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterCore;
 import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.models.Tweet;
+import com.twitter.sdk.android.core.models.TwitterCollection;
 import com.twitter.sdk.android.tweetui.SearchTimeline;
 import com.twitter.sdk.android.tweetui.SearchTimeline.Builder;
 import com.twitter.sdk.android.tweetui.SearchTimeline.ResultType;
@@ -25,6 +27,9 @@ import org.oneat1.android.R;
 import org.oneat1.android.util.OA1Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -53,13 +58,13 @@ public class TweetListFragment extends Fragment {
         SearchTimeline searchTimeline = new Builder()
                                               .query("#1at1action")
                                               .resultType(ResultType.RECENT)
+                                              .maxItemsPerRequest(100)
                                               .build();
+
         listAdapter = new TweetTimelineListAdapter.Builder(getActivity())
                             .setTimeline(searchTimeline)
                             .build();
-
         listview.setAdapter(listAdapter);
-
         refreshLayout.setOnRefreshListener(refresh);
         return view;
     }

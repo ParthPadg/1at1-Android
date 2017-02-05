@@ -6,6 +6,7 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.text.TextUtils;
@@ -29,8 +30,8 @@ import org.oneat1.android.OA1App;
 import org.oneat1.android.R;
 import org.oneat1.android.firebase.RemoteConfigHelper;
 import org.oneat1.android.firebase.RemoteConfigHelper.CompletionListener;
-import org.oneat1.android.model.youtube.YTItem;
 import org.oneat1.android.model.youtube.YTResponseBody;
+import org.oneat1.android.model.youtube.YTResponseBody.YTItem;
 import org.oneat1.android.util.OA1Config;
 import org.oneat1.android.util.OA1Util;
 import org.oneat1.android.util.OA1Util.ThreadUtil;
@@ -42,10 +43,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Objects;
 
 import butterknife.BindView;
+import butterknife.BindViews;
 import butterknife.ButterKnife;
+import butterknife.ButterKnife.Action;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 import okhttp3.Call;
@@ -73,6 +77,8 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
 
     @BindView(R.id.watch_title) TypefaceTextView videoTitle;
     @BindView(R.id.watch_viewercount) TypefaceTextView videoViewCount;
+    @BindView(R.id.watch_description) TypefaceTextView videoDescription;
+    @BindViews({R.id.watch_title, R.id.watch_viewercount, R.id.watch_description}) List<TypefaceTextView> videoContent;
     @BindView(R.id.watch_progress) ProgressBar progress;
 
     YTResponseBody responseBody;
@@ -95,8 +101,12 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         progress.animate()
               .alpha(1)
               .start();
-        videoViewCount.setVisibility(View.GONE);
-        videoTitle.setVisibility(View.GONE);
+        ButterKnife.apply(videoContent, new Action<TypefaceTextView>() {
+            @Override
+            public void apply(@NonNull TypefaceTextView view, int index) {
+                view.setVisibility(View.GONE);
+            }
+        });
 
         YouTubePlayerFragment f = (YouTubePlayerFragment) getChildFragmentManager().findFragmentById(R.id.watch_fragment);
         if (f != null) { //if this is null, we're *so* boned...
@@ -232,18 +242,29 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     }
 
     void bindResponseToView(YTResponseBody response) {
-        if(videoTitle == null || videoViewCount == null) {
+        if(videoTitle == null || videoViewCount == null || videoDescription == null) {
             LOG.error("Error - no UI!");
             return;
         }
         String title = null;
         String viewers = null;
+        String description = null;
         responseBody = response;
         if (response.items != null && response.items.size() > 0) {
             YTItem videoItem = response.items.get(0); //blindly take first item; ideally, there should only be one anyway
-            if (videoItem.snippet != null && !TextUtils.isEmpty(videoItem.snippet.title)) {
-                title = videoItem.snippet.title;
-            }else{
+            if (videoItem.snippet != null) {
+                if (!TextUtils.isEmpty(videoItem.snippet.title)) {
+                    title = videoItem.snippet.title;
+                } else {
+                    LOG.warn("snippet.title is null!");
+                }
+
+                if (!TextUtils.isEmpty(videoItem.snippet.description)) {
+                    description = videoItem.snippet.description;
+                } else {
+                    LOG.warn("snippet.description is null!");
+                }
+            } else {
                 LOG.warn("snippet.title is null!");
             }
 
@@ -268,14 +289,13 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
         if (TextUtils.isEmpty(viewers)) {
             viewers = "0";
         }
+        if(TextUtils.isEmpty(description)){
+            description = "";
+        }
 
         videoTitle.setText(title);
         videoViewCount.setText(getString(R.string.watch_num_viewers, viewers));
-
-        videoTitle.setVisibility(View.VISIBLE);
-        videoTitle.setAlpha(0f);
-        videoViewCount.setVisibility(View.VISIBLE);
-        videoViewCount.setAlpha(0f);
+        videoDescription.setText(description);
 
         progress.animate().alpha(0).withEndAction(new Runnable() {
             @Override
@@ -284,8 +304,15 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
                 progress.setVisibility(View.GONE);
             }
         }).start();
-        videoTitle.animate().alpha(1f).start();
-        videoViewCount.animate().alpha(1f).start();
+
+        ButterKnife.apply(videoContent, new Action<TypefaceTextView>() {
+            @Override
+            public void apply(@NonNull TypefaceTextView view, int index) {
+                view.setVisibility(View.VISIBLE);
+                view.setAlpha(0f);
+                view.animate().alpha(1f).start();
+            }
+        });
     }
 
     private class BaseCallback implements Callback{
@@ -297,8 +324,7 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
                 Answers.getInstance()
                       .logCustom(new CustomEvent("Youtube Response Code")
                                        .putCustomAttribute("code", -1)
-                                       .putCustomAttribute("reason", e.getLocalizedMessage())
-                      );
+                                       .putCustomAttribute("reason", e.getLocalizedMessage()));
             }
         }
 

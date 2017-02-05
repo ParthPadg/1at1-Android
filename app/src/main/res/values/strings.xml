@@ -1,14 +1,8 @@
 <resources>
     <string name="app_name">1@1</string>
-    <string name="notif_pref_title">To help you make the most impact, we’d like to send you two kinds of
-        notifications:
-    </string>
-    <string name="notif_pref_body">1. Countdown reminders up to the 1@1 action on Jan. 21.\n\n2. The 1@1 Action Plan
-        after Jan. 21. Each week for a year, you’ll receive a 1-minute video of an easy action to take, that, when
-        multiplied by thousands of people, can create real change.
+    <string name="notif_pref_title">To help you make the most impact, we’d like to send you notifications with actions you can take, that, when multiplied by many, can create real change for women and girls.
     </string>
     <string name="watch_num_viewers">%1$s viewers</string>
-    <!--<string name="for_more_info">Check out <a href="http://www.1at1.org/">1at1.org</a> for more information. Feedback or questions? Email <a href="mailto:info@1at1.org">info@1at1.org</a>.</string>-->
     <string name="for_more_info">Check out 1at1.org for more information.\nFeedback or questions? Email info@1at1.org.
     </string>
 

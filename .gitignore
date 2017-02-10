@@ -16,6 +16,7 @@ captures/
 .idea/workspace.xml
 .idea/*
 *.jks
+!gradlew
 
 #SENSITIVE FILES
 app/src/main/assets/config.properties

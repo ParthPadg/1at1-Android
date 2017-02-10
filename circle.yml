@@ -20,10 +20,10 @@ dependencies:
     - echo "overriding dependencies!"
 
 test:
-    override:
-        - echo "overriding test!"
-        - ./gradlew --no-daemon --console=plain -D"${GRADLE_OPTS}" clean
-        - ./gradlew --no-daemon --console=plain -D"${GRADLE_OPTS}" :app:assembleRelease
+  override:
+    - echo "overriding test!"
+    - ./gradlew --no-daemon --console=plain -D"${GRADLE_OPTS}" clean
+    - ./gradlew --no-daemon --console=plain -D"${GRADLE_OPTS}" :app:assembleRelease
 
 deployment:
   release:
@@ -32,4 +32,4 @@ deployment:
     tag: /v[0-9]+(\.[0-9]+)*/
     commands:
       - echo "would have released!"
-#      - ./gradlew --no-daemon --console=plain -D"${GRADLE_OPS}" publishApkRelease #upload to Google Play Store
+    #      - ./gradlew --no-daemon --console=plain -D"${GRADLE_OPS}" publishApkRelease #upload to Google Play Store

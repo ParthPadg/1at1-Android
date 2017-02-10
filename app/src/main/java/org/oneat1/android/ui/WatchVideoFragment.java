@@ -165,8 +165,10 @@ public class WatchVideoFragment extends Fragment implements OnInitializedListene
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        youtubePlayer.release();
-        youtubePlayer = null;
+        if (youtubePlayer != null) {
+            youtubePlayer.release();
+            youtubePlayer = null;
+        }
         OA1Util.safeUnbind(unbinder);
     }
 

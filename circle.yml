@@ -29,7 +29,7 @@ deployment:
   alphaRelease:
     owner: parthpadg
     branch: [master, ci]
-    tag: /v[0-9]+(\.[0-9]+)*/
+#    tag: /v[0-9]+(\.[0-9]+)*/
     commands:
       - echo "would have released!"
     #      - ./gradlew --no-daemon --console=plain -D"${GRADLE_OPS}" publishApkRelease #upload to Google Play Store

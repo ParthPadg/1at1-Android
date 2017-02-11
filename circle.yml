@@ -11,7 +11,7 @@ dependencies:
     - echo "$KEYSTORE_PROPERTIES" | tr " " "\n" > keystore.properties
     - echo "$FABRIC_PROPERTIES" | tr " " "\n"  > app/fabric.properties
     - echo "$UPLOAD_KEY" > uploadKey.json
-    - openssl -aes-256-cmc -d -in "1@1keystore.enc" -out "1@1keystore.jks" -k $DECRYPT_KEY
+    - openssl -aes-256-cbc -d -in "1@1keystore.enc" -out "1@1keystore.jks" -k $DECRYPT_KEY
 
     - echo y | android update sdk --no-ui --all --filter tools #get latest SDK tools, including SDKManager
     #SDKManager handles the license correctly; `android` doesn't

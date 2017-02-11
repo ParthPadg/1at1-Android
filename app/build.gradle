@@ -44,6 +44,7 @@ android {
         targetSdkVersion 25
         versionCode major * 10000 + minor * 1000 + patch * 10
         versionName "${major}.${minor}.${patch}"
+        resConfigs "en"
     }
 
     buildTypes {

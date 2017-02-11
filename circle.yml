@@ -19,8 +19,8 @@ dependencies:
   override:
     - echo "overriding dependencies!"
   cache_directories:
-    - .android
-    - .gradle
+    - "~/.android"
+    - "~/.gradle"
 
 test:
   override:
@@ -30,7 +30,7 @@ test:
 
 deployment:
   alphaRelease:
-    owner: parthpadg
+    owner: ParthPadg
     branch: [master, ci]
 #    tag: /v[0-9]+(\.[0-9]+)*/
     commands:

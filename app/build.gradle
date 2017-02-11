@@ -21,7 +21,7 @@ apply plugin: 'com.github.triplet.play'
 
 def major = 1
 def minor = 0
-def patch = 5
+def patch = 6
 
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(rootProject.file("keystore.properties")))

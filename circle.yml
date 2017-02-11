@@ -7,9 +7,9 @@ machine:
 dependencies:
   pre:
     # set up release config stuff
-    - echo "$CONFIG_PROPERTIES" > app/src/main/assets/config.properties
-    - echo "$KEYSTORE_PROPERTIES" > keystore.properties
-    - echo "$FABRIC_PROPERTIES"  > app/fabric.properties
+    - echo "$CONFIG_PROPERTIES" | tr " " "\n" > app/src/main/assets/config.properties
+    - echo "$KEYSTORE_PROPERTIES" | tr " " "\n" > keystore.properties
+    - echo "$FABRIC_PROPERTIES" | tr " " "\n"  > app/fabric.properties
     - echo "$UPLOAD_KEY" > uploadKey.json
     - openssl -aes-256-cmc -d -in "1@1keystore.enc" -out "1@1keystore.jks" -k $DECRYPT_KEY
 

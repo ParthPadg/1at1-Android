@@ -14,7 +14,7 @@ dependencies:
     - openssl aes-256-cbc -d -in "1@1keystore.enc" -out "1@1keystore.jks" -k $DECRYPT_KEY
 
     #make ~/.gradle dir so we can cache it in the CACHE_DIRECTORIES
-    - mkdir ~/.gradle
+    - if [ ! -d "~/.gradle" ]; then mkdir ~/.gradle; fi;
 
     #get latest SDK tools, including SDKManager
     - echo y | android update sdk --no-ui --all --filter tools
@@ -39,4 +39,4 @@ deployment:
 #    tag: /v[0-9]+(\.[0-9]+)*/
     commands:
       - echo "Releasing to Google Play Store!"
-      - ./gradlew --no-daemon --console=plain -D"${GRADLE_OPS}" publishApkRelease #upload to Google Play Store
+      - ./gradlew --console=plain publishApkRelease #upload to Google Play Store

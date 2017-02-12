@@ -1,0 +1,42 @@
+machine:
+  java:
+    version: openjdk8
+  environment:
+    GRADLE_OPTS: "-Xmx2048m -Dorg.gradle.parallel=false -Dorg.gradle.jvmargs='-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError'"
+
+dependencies:
+  pre:
+    # set up release config stuff
+    - echo "$CONFIG_PROPERTIES" | tr " " "\n" > app/src/main/assets/config.properties
+    - echo "$KEYSTORE_PROPERTIES" | tr " " "\n" > keystore.properties
+    - echo "$FABRIC_PROPERTIES" | tr " " "\n"  > app/fabric.properties
+    - echo "$UPLOAD_KEY" > uploadKey.json
+    - openssl aes-256-cbc -d -in "1@1keystore.enc" -out "1@1keystore.jks" -k $DECRYPT_KEY
+
+    #make ~/.gradle dir so we can cache it in the CACHE_DIRECTORIES
+    - if [ ! -d "~/.gradle" ]; then mkdir ~/.gradle; fi;
+
+    #get latest SDK tools, including SDKManager
+    - echo y | android update sdk --no-ui --all --filter tools
+    #SDKManager handles the license correctly; `android` doesn't
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager "platforms;android-25" "build-tools;25.0.2" "extras;android;m2repository" "extras;google;m2repository"
+  override:
+    - echo "overriding dependencies!"
+  cache_directories:
+    - "~/.android"
+    - "~/.gradle"
+
+test:
+  override:
+    - echo "overriding test!"
+    - ./gradlew --no-daemon --console=plain -D"${GRADLE_OPTS}" clean
+    - ./gradlew --no-daemon --console=plain -D"${GRADLE_OPTS}" :app:assembleRelease
+
+deployment:
+  alphaRelease:
+    owner: ParthPadg
+    branch: [master, ci]
+#    tag: /v[0-9]+(\.[0-9]+)*/
+    commands:
+      - echo "Releasing to Google Play Store!"
+      - ./gradlew --console=plain publishApkRelease #upload to Google Play Store

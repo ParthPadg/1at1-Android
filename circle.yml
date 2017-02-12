@@ -13,7 +13,11 @@ dependencies:
     - echo "$UPLOAD_KEY" > uploadKey.json
     - openssl aes-256-cbc -d -in "1@1keystore.enc" -out "1@1keystore.jks" -k $DECRYPT_KEY
 
-    - echo y | android update sdk --no-ui --all --filter tools #get latest SDK tools, including SDKManager
+    #make ~/.gradle dir so we can cache it in the CACHE_DIRECTORIES
+    - mkdir ~/.gradle
+
+    #get latest SDK tools, including SDKManager
+    - echo y | android update sdk --no-ui --all --filter tools
     #SDKManager handles the license correctly; `android` doesn't
     - echo y | $ANDROID_HOME/tools/bin/sdkmanager "platforms;android-25" "build-tools;25.0.2" "extras;android;m2repository" "extras;google;m2repository"
   override:

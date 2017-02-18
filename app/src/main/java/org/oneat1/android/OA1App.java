@@ -9,7 +9,7 @@ import com.twitter.sdk.android.core.TwitterAuthConfig;
 
 import org.oneat1.android.firebase.RemoteConfigHelper;
 import org.oneat1.android.firebase.RemoteConfigHelper.RemoteConfigValues;
-import org.oneat1.android.util.API;
+import org.oneat1.android.network.API;
 import org.oneat1.android.util.CrashlyticsCrashAppender;
 import org.oneat1.android.util.OA1Config;
 import org.oneat1.android.util.OA1Font;

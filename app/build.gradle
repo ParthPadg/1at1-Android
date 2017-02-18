@@ -21,7 +21,7 @@ apply plugin: 'io.fabric'
 
 def major = 1
 def minor = 0
-def patch = 3
+def patch = 4
 
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(rootProject.file("keystore.properties")))
@@ -88,7 +88,6 @@ dependencies {
     compile 'com.balysv:material-ripple:1.0.2'
     compile 'com.jakewharton:butterknife:8.4.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
-
 
     compile('com.twitter.sdk.android:twitter:2.3.1@aar') { transitive = true; };
     compile('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') { transitive = true; }

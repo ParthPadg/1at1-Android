@@ -11,36 +11,19 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <LinearLayout
+        <org.oneat1.android.util.TypefaceTextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="168dp"
             android:background="@color/darkBlue"
-            android:orientation="vertical"
-        >
+            android:gravity="center|left"
+            android:paddingEnd="20dp"
+            android:paddingStart="20dp"
+            android:text="1@1 is an action amplifier for the advancement of women’s equality."
+            android:textColor="@android:color/white"
+            android:textSize="26sp"
 
-            <org.oneat1.android.util.TypefaceTextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="20dp"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="30dp"
-                android:text="We’re taking a stand for women’s equality."
-                android:textColor="@android:color/white"
-                android:textSize="26sp"
-                app:typeface="font_futura_regular"/>
+            app:typeface="font_futura_regular"/>
 
-            <org.oneat1.android.util.TypefaceTextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="30dp"
-                android:layout_marginEnd="20dp"
-                android:layout_marginStart="20dp"
-                android:text="Join us."
-                android:textColor="@android:color/white"
-                android:textSize="26sp"
-                app:typeface="font_futura_bold"/>
-
-        </LinearLayout>
 
         <android.support.v7.widget.CardView
             android:layout_width="match_parent"
@@ -60,9 +43,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
-                    android:text="@string/schedule_text"
+                    android:text="Weekly inspiration and 1-minute videos"
                     android:textColor="@color/cherryRed"
-                    android:textSize="20sp"
+                    android:textSize="16sp"
                     app:typeface="font_helvetica_bold"
                 />
 
@@ -71,7 +54,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
                     android:layout_marginTop="10dp"
-                    android:text="We rise for our mothers, our sisters, our daughters and ourselves in one unifying action."
+                    android:text="Hear from effective feminist changemakers offering small steps to build big momentum."
                     android:textColor="@color/darkGray"
                     android:textSize="14sp"
                     app:typeface="font_helvetica_regular"
@@ -94,6 +77,8 @@
                         android:drawableStart="@drawable/share"
                         android:text="Spread the word"
                         android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        app:typeface="font_helvetica_regular"
                     />
 
                 </com.balysv.materialripple.MaterialRippleLayout>
@@ -120,7 +105,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
-                    android:text="Share how you're rising with #1at1action"
+                    android:text="Connect, inspire, mobilize\n#1at1"
                     android:textColor="@color/cherryRed"
                     android:textSize="16sp"
                     app:typeface="font_helvetica_bold"

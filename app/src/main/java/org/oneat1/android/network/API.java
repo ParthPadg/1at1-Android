@@ -1,4 +1,4 @@
-package org.oneat1.android.util;
+package org.oneat1.android.network;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -9,15 +9,14 @@ import org.oneat1.android.model.PlaylistItemResponse;
 import org.oneat1.android.model.PlaylistItemResponse.PlaylistItem;
 import org.oneat1.android.model.VideoItemResponse;
 import org.oneat1.android.model.VideoItemResponse.VideoItem;
+import org.oneat1.android.util.OA1Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
@@ -46,7 +45,7 @@ public class API {
         @GET("videos?part=snippet,statistics&fields=items(id,snippet(title),statistics(viewCount))")
         Single<VideoItemResponse> getVideoList(@Query("key") String apiKey, @Query("id") String videoID);
 
-        @GET("playlistItems?part=snippet&fields=nextPageToken,pageInfo,items(snippet(title,description,thumbnails(standard)))")
+        @GET("playlistItems?part=snippet&fields=nextPageToken,pageInfo,items(snippet(title,description,thumbnails(standard),resourceId(videoId)))")
         Observable<PlaylistItemResponse> getPlaylistItems(@Query("key") String apiKey,
                                                                @Query("playlistId") String playlistID,
                                                                @Query("pageToken") @Nullable String pageToken);

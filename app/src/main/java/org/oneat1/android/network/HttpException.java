@@ -1,4 +1,4 @@
-package org.oneat1.android.model;
+package org.oneat1.android.network;
 
 import retrofit2.Response;
 /**

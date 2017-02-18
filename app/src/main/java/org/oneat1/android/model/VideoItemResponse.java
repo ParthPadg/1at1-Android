@@ -76,10 +76,12 @@ public class VideoItemResponse implements Parcelable {
 
         public static class Snippet implements Parcelable {
             public String title;
+            public String description;
 
             @Override
             public void writeToParcel(Parcel dest, int flags) {
                 dest.writeString(title);
+                dest.writeString(description);
             }
 
             @Override
@@ -92,6 +94,7 @@ public class VideoItemResponse implements Parcelable {
                 public Snippet createFromParcel(Parcel in) {
                     Snippet snippet = new Snippet();
                     snippet.title = in.readString();
+                    snippet.description = in.readString();
                     return snippet;
                 }
 
@@ -101,8 +104,6 @@ public class VideoItemResponse implements Parcelable {
                 }
             };
         }
-
-
     }
 
 

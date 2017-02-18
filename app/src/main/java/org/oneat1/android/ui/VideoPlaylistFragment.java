@@ -1,12 +1,13 @@
 package org.oneat1.android.ui;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,19 +16,14 @@ import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.bumptech.glide.Glide;
 import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
 import com.crashlytics.android.answers.ShareEvent;
-import com.google.android.youtube.player.YouTubeInitializationResult;
-import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener;
-import com.google.android.youtube.player.YouTubePlayer.Provider;
-import com.google.android.youtube.player.YouTubePlayerFragment;
 
 import org.oneat1.android.BuildConfig;
 import org.oneat1.android.R;
@@ -36,8 +32,8 @@ import org.oneat1.android.firebase.RemoteConfigHelper.RemoteConfigValues;
 import org.oneat1.android.model.PlaylistItemResponse;
 import org.oneat1.android.model.PlaylistItemResponse.PlaylistItem;
 import org.oneat1.android.model.VideoItemResponse.VideoItem;
-import org.oneat1.android.util.API;
-import org.oneat1.android.util.OA1Config;
+import org.oneat1.android.network.API;
+import org.oneat1.android.ui.VideoPlaylistFragment.PlaylistVideoAdapter.CellViewHolder;
 import org.oneat1.android.util.OA1Util;
 import org.oneat1.android.util.TypefaceTextView;
 import org.slf4j.Logger;
@@ -47,11 +43,15 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import butterknife.BindView;
+import butterknife.BindViews;
 import butterknife.ButterKnife;
+import butterknife.ButterKnife.Action;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -62,22 +62,25 @@ import io.reactivex.functions.Consumer;
 /**
  * Created by parthpadgaonkar on 1/8/17.
  */
-public class VideoPlaylistFragment extends Fragment implements OnInitializedListener {
+public class VideoPlaylistFragment extends YoutubeAwareFragment {
     private final static Logger LOG = LoggerFactory.getLogger(VideoPlaylistFragment.class);
     private static final String KEY_VIDEO_RESPONSE= "watch.youtube.video.response";
     private static final String KEY_PLAYLIST_RESPONSE = "watch.youtube.playlist.response";
 
     @BindView(R.id.watch_title) TypefaceTextView videoTitle;
     @BindView(R.id.watch_viewercount) TypefaceTextView videoViewCount;
+    @BindView(R.id.watch_description) TypefaceTextView videoDescription;
+    @BindViews({R.id.watch_title, R.id.watch_viewercount, R.id.watch_description}) List<TypefaceTextView> videoContent;
     @BindView(R.id.watch_progress) ProgressBar progress;
     @BindView(R.id.watch_playlist) RecyclerView playlistRecycler;
+    CoordinatorLayout coordinator; //inflated in parent, so we can't use ButterKnife :(
 
     private Unbinder unbinder;
-    private YouTubePlayer youtubePlayer;
     private PlaylistVideoAdapter adapter;
     private String videoID;
     private String playlistID;
 
+    boolean requestedYoutubeInfo = false;
     VideoItem memoizedVideo;
     List<PlaylistItem> memoizedPlaylistItems;
     Disposable subscription;
@@ -91,9 +94,9 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_video_playlist, container, false);
         unbinder = ButterKnife.bind(this, view);
+        coordinator = ButterKnife.findById(getActivity(), R.id.coordinator);
 
-        adapter = new PlaylistVideoAdapter();
-        playlistRecycler.setAdapter(adapter);
+        playlistRecycler.setAdapter(adapter = new PlaylistVideoAdapter(playlistClickSubject));
         playlistRecycler.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.HORIZONTAL));
         playlistRecycler.setHasFixedSize(false);
         playlistRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -104,11 +107,6 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
               .start();
         videoViewCount.setVisibility(View.GONE);
         videoTitle.setVisibility(View.GONE);
-
-        YouTubePlayerFragment f = (YouTubePlayerFragment) getChildFragmentManager().findFragmentById(R.id.watch_fragment);
-        if (f != null) { //if this is null, we're *so* boned...
-            f.initialize(OA1Config.getInstance(getActivity()).getYoutubeAPIKey(), this);
-        }
 
         if (savedInstanceState != null) {
             memoizedVideo = savedInstanceState.getParcelable(KEY_VIDEO_RESPONSE);
@@ -146,20 +144,18 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
 
                           String newVideoID = newValues.getVideoID();
                           String newPlaylistID = newValues.getPlaylistID();
-                          if (newVideoID != null) {
-                              videoID = newVideoID;
-                          }
-                          if (newPlaylistID != null) {
-                              playlistID = newVideoID;
+
+                          boolean updated = !Objects.equals(videoID, newVideoID)
+                                                  || !Objects.equals(playlistID, newPlaylistID);
+
+                          if (updated || !requestedYoutubeInfo) {
+                              if (newVideoID != null) videoID = newVideoID;
+                              if (newPlaylistID != null) playlistID = newVideoID;
+
+                              getAllVideoInfo();
                           }
 
-                          if (youtubePlayer != null) {
-                              if (youtubePlayer.isPlaying()) {
-                                  youtubePlayer.loadVideo(VideoPlaylistFragment.this.videoID);
-                              } else {
-                                  youtubePlayer.cueVideo(VideoPlaylistFragment.this.videoID);
-                              }
-                          } // the player isn't loaded - we'll just have to wait :(
+                          handleYoutubeIdUpdate();
                       }
                   });
         }
@@ -183,11 +179,31 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
         OA1Util.safeUnbind(unbinder);
-        if(subscription != null){
+        if (subscription != null) {
             subscription.dispose();
         }
+        super.onDestroyView();
+    }
+
+    @Override
+    protected String getCurrentVideoID() {
+        return videoID;
+    }
+
+    @Override
+    protected void setCurrentVideoID(String newVideoID) {
+        videoID = newVideoID;
+        getVideoItemRx()
+              .subscribe(new BiConsumer<VideoItem, Throwable>() {
+                  @Override
+                  public void accept(VideoItem videoItem, Throwable throwable) throws Exception {
+                      //not worried about the videoItem; we've already handled that
+                      if (throwable != null) {
+                          LOG.error("Error refreshing video information - ", throwable);
+                      }
+                  }
+              });
     }
 
     @OnClick(R.id.watch_share)
@@ -199,45 +215,7 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
     }
 
     private void getAllVideoInfo() {
-       Single<VideoItem> videoObservable =
-              API.getVideoList(videoID)
-                    .retry(2)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .doOnSuccess(new Consumer<VideoItem>() {
-                        @Override
-                        public void accept(VideoItem videoItem) throws Exception {
-                            populateMainVideoDetails(videoItem);
-                        }
-                    });
-
-        Single<List<PlaylistItem>> playlistObservable =
-              API.getPlaylistItemList(playlistID)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .doOnEvent(new BiConsumer<List<PlaylistItem>, Throwable>() {
-                        @Override
-                        public void accept(List<PlaylistItem> playlistItems, Throwable throwable) throws Exception {
-                            if (throwable != null) {
-                                LOG.error("error obtaining playlist items: ", throwable);
-                                if (OA1Util.isFragmentDetached(VideoPlaylistFragment.this))
-                                    return;
-                                playlistRecycler.animate()
-                                      .alpha(0f)
-                                      .withEndAction(new Runnable() {
-                                          @Override
-                                          public void run() {
-                                              playlistRecycler.setVisibility(View.GONE);
-                                          }
-                                      })
-                                      .start();
-                            } else {
-                                playlistRecycler.setVisibility(View.VISIBLE);
-                                populateAdapter(playlistItems);
-                            }
-
-                        }
-                    });
-
-        subscription = Single.zip(videoObservable, playlistObservable, new BiFunction<VideoItem, List<PlaylistItem>, Object>() {
+        subscription = Single.zip(getVideoItemRx(), getPlaylistItemsRx(), new BiFunction<VideoItem, List<PlaylistItem>, Object>() {
             @Override
             public Object apply(VideoItem videoItem, List<PlaylistItem> playlistItems) throws Exception {
                 return Boolean.TRUE; //we don't care about the result of the zip; we just wanted to kick off the two network calls
@@ -246,50 +224,53 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
             @Override
             public void accept(Object o, Throwable throwable) throws Exception {
                 if (throwable != null) {
-                    //TODO
+                    LOG.error("Error loading video and playlist info: ", throwable);
+                    Snackbar.make(coordinator,
+                          "There was an error loading the video information - please try again",
+                          Snackbar.LENGTH_SHORT)
+                          .show();
                 }
             }
         });
     }
 
-    //Youtube callback
-    @Override
-    public void onInitializationSuccess(Provider provider, YouTubePlayer player, boolean wasRestored) {
-        this.youtubePlayer = player;
-        LOG.debug("YOUTUBE player successful init; wasRestored {}", wasRestored);
-        player.setShowFullscreenButton(false);
-        if (!wasRestored) {
-            player.cueVideo(videoID);
-            LOG.debug("queueing video ID {}", videoID);
-        } else {
-            player.play();
-        }
-        if (!BuildConfig.DEBUG) {
-            CustomEvent event = new CustomEvent("Youtube SDK Init")
-                                      .putCustomAttribute("success", "yes");
-            Answers.getInstance().logCustom(event);
-        }
+    private Single<VideoItem> getVideoItemRx() {
+        return API.getVideoList(videoID)
+              .retry(2)
+              .observeOn(AndroidSchedulers.mainThread())
+              .doOnSuccess(new Consumer<VideoItem>() {
+                  @Override
+                  public void accept(VideoItem videoItem) throws Exception {
+                      populateMainVideoDetails(videoItem);
+                  }
+              });
     }
 
-    //Youtube callback
-    @Override
-    public void onInitializationFailure(Provider provider, YouTubeInitializationResult errorReason) {
-        LOG.error("Error initializing Youtube client: {}", errorReason);
-        if (getActivity() == null) return;
-        if (!BuildConfig.DEBUG) {
-            CustomEvent event = new CustomEvent("Youtube SDK Init")
-                                      .putCustomAttribute("success", "no")
-                                      .putCustomAttribute("reason", errorReason.name());
-            Answers.getInstance().logCustom(event);
-        }
-        if (errorReason.isUserRecoverableError()) {
-            errorReason.getErrorDialog(getActivity(), 19181).show();
-        } else {
-            new AlertDialog.Builder(getActivity())
-                  .setTitle("Error Loading YouTube")
-                  .setMessage("It seems like there was an error loading the YouTube player; please ensure that the YouTube app is installed.")
-                  .show();
-        }
+    private Single<List<PlaylistItem>> getPlaylistItemsRx() {
+        return API.getPlaylistItemList(playlistID)
+                     .observeOn(AndroidSchedulers.mainThread())
+                     .doOnEvent(new BiConsumer<List<PlaylistItem>, Throwable>() {
+                         @Override
+                         public void accept(List<PlaylistItem> playlistItems, Throwable throwable) throws Exception {
+                             if (throwable != null) {
+                                 LOG.error("error obtaining playlist items: ", throwable);
+                                 if (OA1Util.isFragmentDetached(VideoPlaylistFragment.this))
+                                     return;
+                                 playlistRecycler.animate()
+                                       .alpha(0f)
+                                       .withEndAction(new Runnable() {
+                                           @Override
+                                           public void run() {
+                                               playlistRecycler.setVisibility(View.GONE);
+                                           }
+                                       })
+                                       .start();
+                             } else {
+                                 playlistRecycler.setVisibility(View.VISIBLE);
+                                 populateAdapter(playlistItems);
+                             }
+                         }
+                     });
     }
 
     void populateMainVideoDetails(VideoItem video) {
@@ -299,12 +280,21 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
         }
         String title = null;
         String viewers = null;
+        String description = null;
         memoizedVideo = video;
 
-
         VideoItem.Snippet snippet = video.snippet;
-        if (snippet != null && !TextUtils.isEmpty(snippet.title)) {
-            title = snippet.title;
+        if (snippet != null) {
+            if (!TextUtils.isEmpty(snippet.title)) {
+                title = snippet.title;
+            } else {
+                LOG.warn("snippet.title is null!");
+            }
+            if (!TextUtils.isEmpty(snippet.description)) {
+                description = snippet.description;
+            } else {
+                LOG.warn("snippet.description is null!");
+            }
         } else {
             LOG.warn("snippet.title is null!");
         }
@@ -317,30 +307,36 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
             LOG.warn("statistics.viewcount is null!");
         }
 
-
         if (TextUtils.isEmpty(title)) {
             title = "<Unknown Title>";
         }
         if (TextUtils.isEmpty(viewers)) {
             viewers = "0";
         }
+        if (TextUtils.isEmpty(description)) {
+            description = "";
+        }
 
         videoTitle.setText(title);
         videoViewCount.setText(getString(R.string.watch_num_viewers, viewers));
-
-        videoTitle.setVisibility(View.VISIBLE);
-        videoTitle.setAlpha(0f);
-        videoViewCount.setVisibility(View.VISIBLE);
-        videoViewCount.setAlpha(0f);
+        videoDescription.setText(description);
 
         progress.animate().alpha(0).withEndAction(new Runnable() {
             @Override
             public void run() {
+                if (progress == null) return;
                 progress.setVisibility(View.GONE);
             }
         }).start();
-        videoTitle.animate().alpha(1f).start();
-        videoViewCount.animate().alpha(1f).start();
+
+        ButterKnife.apply(videoContent, new Action<TypefaceTextView>() {
+            @Override
+            public void apply(@NonNull TypefaceTextView view, int index) {
+                view.setVisibility(View.VISIBLE);
+                view.setAlpha(0f);
+                view.animate().alpha(1f).start();
+            }
+        });
     }
 
     void populateAdapter(List<PlaylistItem> list) {
@@ -348,9 +344,14 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
         memoizedPlaylistItems = list;
     }
 
-    static class PlaylistVideoAdapter extends Adapter<PlaylistVideoAdapter.CellViewHolder> {
+    static class PlaylistVideoAdapter extends Adapter<CellViewHolder> {
 
-        private List<PlaylistItem> list = Collections.emptyList();
+        List<PlaylistItem> list = Collections.emptyList();
+        Observer<PlaylistItem> clickSubject;
+
+        public PlaylistVideoAdapter(Observer<PlaylistItem> clickSubject) {
+            this.clickSubject = clickSubject;
+        }
 
         void setList(List<PlaylistItemResponse.PlaylistItem> list) {
             this.list = list;
@@ -366,8 +367,7 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
 
         @Override
         public void onBindViewHolder(CellViewHolder holder, int position) {
-            PlaylistItem item = list.get(position);
-            holder.bind(item);
+            holder.bind(list.get(position));
         }
 
         @Override
@@ -375,7 +375,7 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
             return list.size();
         }
 
-        static class CellViewHolder extends ViewHolder {
+        class CellViewHolder extends ViewHolder {
             @BindView(R.id.playlist_thumbnail) ImageView thumbnail;
             @BindView(R.id.playlist_title) TypefaceTextView title;
             @BindView(R.id.playlist_descr) TypefaceTextView description;
@@ -386,17 +386,31 @@ public class VideoPlaylistFragment extends Fragment implements OnInitializedList
             }
 
             void bind(PlaylistItem item) {
-                PlaylistItem.Snippet snippet = item.snippet;
-                Glide.with(thumbnail.getContext())
-                      .load(snippet.thumbnails.standard.url) //todo make this not as scary
-                      .crossFade()
-                      .placeholder(android.R.drawable.progress_indeterminate_horizontal)
-                      .fitCenter()
-                      .into(thumbnail);
+                if (!TextUtils.isEmpty(item.getThumnailURL())) {
+                    Glide.with(thumbnail.getContext())
+                          .load(item.getThumnailURL())
+                          .crossFade()
+                          .placeholder(android.R.drawable.progress_indeterminate_horizontal)
+                          .fitCenter()
+                          .into(thumbnail);
+                }
 
-                title.setText(snippet.title);
-                description.setText(snippet.description);
+                title.setText(item.getTitle());
+                description.setText(item.getDescription());
+                super.itemView.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        List<PlaylistItem> list = PlaylistVideoAdapter.this.list;
+                        int pos = getLayoutPosition();
+                        if (pos < list.size()) {
+                            clickSubject.onNext(list.get(pos));
+                        }
+                    }
+                });
             }
         }
+
     }
+
+
 }

@@ -69,8 +69,8 @@ public class VideoPlaylistFragment extends YoutubeAwareFragment {
 
     @BindView(R.id.watch_title) TypefaceTextView videoTitle;
     @BindView(R.id.watch_viewercount) TypefaceTextView videoViewCount;
-    @BindView(R.id.watch_description) TypefaceTextView videoDescription;
-    @BindViews({R.id.watch_title, R.id.watch_viewercount, R.id.watch_description}) List<TypefaceTextView> videoContent;
+//    @BindView(R.id.watch_description) TypefaceTextView videoDescription;
+    @BindViews({R.id.watch_title, R.id.watch_viewercount/*, R.id.watch_description*/}) List<TypefaceTextView> videoContent;
     @BindView(R.id.watch_progress) ProgressBar progress;
     @BindView(R.id.watch_playlist) RecyclerView playlistRecycler;
     CoordinatorLayout coordinator; //inflated in parent, so we can't use ButterKnife :(
@@ -319,7 +319,7 @@ public class VideoPlaylistFragment extends YoutubeAwareFragment {
 
         videoTitle.setText(title);
         videoViewCount.setText(getString(R.string.watch_num_viewers, viewers));
-        videoDescription.setText(description);
+//        videoDescription.setText(description);
 
         progress.animate().alpha(0).withEndAction(new Runnable() {
             @Override
@@ -344,7 +344,7 @@ public class VideoPlaylistFragment extends YoutubeAwareFragment {
         memoizedPlaylistItems = list;
     }
 
-    static class PlaylistVideoAdapter extends Adapter<CellViewHolder> {
+    static class PlaylistVideoAdapter extends Adapter<PlaylistVideoAdapter.CellViewHolder> {
 
         List<PlaylistItem> list = Collections.emptyList();
         Observer<PlaylistItem> clickSubject;
@@ -378,7 +378,7 @@ public class VideoPlaylistFragment extends YoutubeAwareFragment {
         class CellViewHolder extends ViewHolder {
             @BindView(R.id.playlist_thumbnail) ImageView thumbnail;
             @BindView(R.id.playlist_title) TypefaceTextView title;
-            @BindView(R.id.playlist_descr) TypefaceTextView description;
+//            @BindView(R.id.playlist_descr) TypefaceTextView description;
 
             CellViewHolder(View itemView) {
                 super(itemView);
@@ -396,7 +396,7 @@ public class VideoPlaylistFragment extends YoutubeAwareFragment {
                 }
 
                 title.setText(item.getTitle());
-                description.setText(item.getDescription());
+//                description.setText(item.getDescription());
                 super.itemView.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {

@@ -12,7 +12,6 @@ buildscript {
 
 repositories {
     maven { url 'https://maven.fabric.io/public' }
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" } //TODO remove once Retrofit moves to 2.2.0
 }
 
 
@@ -96,7 +95,7 @@ dependencies {
 
     compile "io.reactivex.rxjava2:rxjava:2.0.4"
     compile "io.reactivex.rxjava2:rxandroid:2.0.1"
-    compile "com.squareup.retrofit2:adapter-rxjava2:2.2.0-SNAPSHOT" //available for 2.2.0, but not 2.1; have to use snapshot
+    compile "com.squareup.retrofit2:adapter-rxjava2:2.2.0" //available for 2.2.0, but not 2.1; have to use snapshot
 }
 
 apply plugin: 'com.google.gms.google-services'

@@ -1,9 +1,12 @@
 <resources>
     <string name="app_name">1@1</string>
-    <string name="notif_pref_title">To help you make the most impact, we’d like to send you notifications with actions you can take, that, when multiplied by many, can create real change for women and girls.
+    <string name="notif_pref_title">We’d like to send you notifications of short weekly videos from effective feminist
+        changemakers.
     </string>
     <string name="watch_num_viewers">%1$s viewers</string>
     <string name="for_more_info">Check out 1at1.org for more information.\nFeedback or questions? Email info@1at1.org.
     </string>
-
+    <string name="video_action_incomplete">✓️️\u0020\u0020I completed this action</string>
+    <string name="video_action_completed">✓️️\u0020\u0020Thank you for making an impact</string>
+    <string name="num_videos_completed">%1$d/%2$d Completed</string>
 </resources>

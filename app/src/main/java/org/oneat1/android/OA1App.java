@@ -1,31 +1,29 @@
 package org.oneat1.android;
 
 import android.app.Application;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
-import com.crashlytics.android.answers.Answers;
-import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.gson.Gson;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
-import org.oneat1.android.util.CrashlyticsCrashAppender;
 import org.oneat1.android.firebase.RemoteConfigHelper;
-import org.oneat1.android.firebase.RemoteConfigHelper.CompletionListener;
+import org.oneat1.android.firebase.RemoteConfigHelper.RemoteConfigValues;
+import org.oneat1.android.network.API;
+import org.oneat1.android.util.CrashlyticsCrashAppender;
 import org.oneat1.android.util.OA1Config;
 import org.oneat1.android.util.OA1Font;
 import org.oneat1.android.util.Prefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.android.LogcatAppender;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
-import ch.qos.logback.classic.filter.ThresholdFilter;
 import io.fabric.sdk.android.Fabric;
+import io.reactivex.functions.BiConsumer;
+import io.reactivex.functions.Consumer;
+import io.reactivex.plugins.RxJavaPlugins;
 
 /**
  * Created by parthpadgaonkar on 1/3/17.
@@ -33,34 +31,39 @@ import io.fabric.sdk.android.Fabric;
 
 public class OA1App extends Application {
     private final static Logger LOG = LoggerFactory.getLogger(OA1App.class);
-    private static final Gson GSON = new Gson();
 
     private static OA1App sInstance;
 
-    public static OA1App getApp(){
+    public static OA1App getApp() {
         return sInstance;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        long start = System.currentTimeMillis();
         sInstance = this;
         Log.d("OA1App", "Hello World, I am OA1App-Android!");
-
         configureLogging();
-    }
-
-    public void init(){
-        Prefs.init(this);
         OA1Config config = OA1Config.getInstance(this);
         initFabric(config);
-
-        initFirebase();
-        OA1Font.init();
+        RxJavaPlugins.setErrorHandler(new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) throws Exception {
+                LOG.error("Uncaught exception: ", throwable);
+                Crashlytics.logException(throwable);
+            }
+        });
+        LOG.debug("Application.onCreate took {}ms", System.currentTimeMillis() - start);
     }
 
-    public Gson getGson(){
-        return GSON;
+    public void init() {
+        long start = System.currentTimeMillis();
+        Prefs.init(this);
+        initFirebase();
+        OA1Font.init();
+        API.init(this);
+        LOG.debug("Application.init() took {}ms", System.currentTimeMillis() - start);
     }
 
     private void configureLogging() {
@@ -93,14 +96,12 @@ public class OA1App extends Application {
 
     private void initFirebase() {
         RemoteConfigHelper.get()
-              .fetch(true, new CompletionListener() {
+              .fetch(true, true)
+              .subscribe(new BiConsumer<RemoteConfigValues, Throwable>() {
                   @Override
-                  public void onComplete(boolean wasSuccessful, @Nullable String youtubeID) {
-                      if(wasSuccessful){
-                        LOG.debug("RemoteConfig obtained newest YouTube value!");
-                      }else{
-                          LOG.warn("There was an error obtaining the latest Youtube value from RemoteConfig!");
-                      }
+                  public void accept(RemoteConfigValues values, Throwable throwable) throws Exception {
+                      //we don't care about the values
+                      //TODO handle error
                   }
               });
     }
@@ -108,9 +109,9 @@ public class OA1App extends Application {
     private void initFabric(OA1Config config) {
         LOG.debug("Initializing Fabric/Twitter");
         TwitterAuthConfig authConfig = new TwitterAuthConfig(config.getTwitterKey(), config.getTwitterSecret());
-        if(BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
             Fabric.with(this, new Twitter(authConfig)); //don't enable Crashlytics for Debug builds!
-        }else{
+        } else {
             Fabric.with(this, new Twitter(authConfig), new Crashlytics());
         }
     }

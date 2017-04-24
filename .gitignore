@@ -22,3 +22,4 @@ app/src/main/assets/config.properties
 keystore.properties
 app/fabric.properties
 1@1keystore.jks
+uploadKey.json

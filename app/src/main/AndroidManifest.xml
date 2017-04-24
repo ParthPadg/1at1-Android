@@ -20,6 +20,9 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/cobalt"/>
 
+        <meta-data android:name="android.max_aspect"
+                   android:value="2.7"/>
+
         <service android:name=".firebase.OA1FCMListenerService"
                  android:exported="false">
             <intent-filter>

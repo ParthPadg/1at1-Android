@@ -8,8 +8,6 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TabLayout.Tab;
 import android.support.v13.app.FragmentPagerAdapter;
-import android.support.v13.app.FragmentStatePagerAdapter;
-import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 
 import org.oneat1.android.R;
@@ -70,7 +68,7 @@ public class MainActivity extends Activity {
     }
 
     static class MainPagerAdapter extends FragmentPagerAdapter {
-        private static final String[] TAB_TITLES = {"Home", "Watch", "Follow"};
+        private static final String[] TAB_TITLES = {"Home", "Actions", "Follow"};
 
         MainPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -83,7 +81,7 @@ public class MainActivity extends Activity {
                 case 0:
                     return ScheduleFragment.newInstance();
                 case 1:
-                    return WatchVideoFragment.createInstance();
+                    return VideoPlaylistFragment.createInstance();
                 case 2:
                     return new TweetListFragment();
                 default:

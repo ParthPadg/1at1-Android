@@ -105,7 +105,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
-                    android:text="Connect, inspire, mobilize\n#1at1"
+                    android:text="Connect. Spark. Mobilize.\n#1at1action"
                     android:textColor="@color/cherryRed"
                     android:textSize="16sp"
                     app:typeface="font_helvetica_bold"

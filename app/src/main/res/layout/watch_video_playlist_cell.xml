@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.balysv.materialripple.MaterialRippleLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="70dp"
+    android:background="@android:color/white"
+    app:mrl_rippleOverlay="true"
+>
+    <RelativeLayout android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginRight="20dp"
+    >
+
+        <ImageView
+            android:id="@+id/video_dot"
+            android:layout_width="7dp"
+            android:layout_height="7dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerInParent="true"
+            android:layout_marginLeft="6.5dp"
+            android:src="@drawable/video_dot"
+            android:visibility="invisible"
+            tools:visibility="visible"
+        />
+        <ImageView
+            android:id="@+id/playlist_thumbnail"
+            android:layout_width="90dp"
+            android:layout_height="51dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerInParent="true"
+            android:layout_marginLeft="20dp"
+            android:adjustViewBounds="true"
+            android:background="@android:color/holo_blue_light"
+            android:scaleType="centerInside"
+            tools:background="@android:color/darker_gray"/>
+
+        <org.oneat1.android.util.TypefaceTextView
+            android:id="@+id/playlist_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_marginLeft="20dp"
+            android:layout_toLeftOf="@+id/playlist_check"
+            android:layout_toRightOf="@+id/playlist_thumbnail"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="12sp"
+            app:typeface="font_helvetica_regular"
+            tools:background="@android:color/darker_gray"/>
+
+        <CheckBox
+            android:id="@+id/playlist_check"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerInParent="true"
+            android:layout_marginLeft="10dp"
+            android:button="@drawable/check_selector"
+        />
+    </RelativeLayout>
+
+
+</com.balysv.materialripple.MaterialRippleLayout>

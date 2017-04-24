@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <fragment
+        android:id="@+id/watch_fragment"
+        android:name="com.google.android.youtube.player.YouTubePlayerFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:layout="@android:layout/simple_gallery_item"
+        tools:layout_height="240dp"/>
+
+    <android.support.v4.widget.NestedScrollView
+        android:id="@+id/watch_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/gray"
+        android:fadingEdgeLength="10dp"
+        android:requiresFadingEdge="vertical"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:orientation="vertical">
+            <ProgressBar
+                android:id="@+id/watch_progress"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:indeterminate="true"
+            />
+
+            <org.oneat1.android.util.TypefaceTextView
+                android:id="@+id/watch_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:textColor="@color/cherryRed"
+                android:textSize="14sp"
+                android:visibility="gone"
+                app:typeface="font_helvetica_bold"
+                tools:text="ffff dddd sss ggg "/>
+
+            <org.oneat1.android.util.TypefaceTextView
+                android:id="@+id/watch_viewercount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:textColor="#9c9c9c"
+                android:visibility="gone"
+                app:typeface="font_helvetica_regular"
+                tools:text="@string/watch_num_viewers"/>
+
+            <org.oneat1.android.util.TypefaceTextView
+                android:id="@+id/watch_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="10dp"
+                android:maxLines="4"
+                android:textColor="@color/darkGray"
+                android:textSize="14sp"
+                android:visibility="gone"
+                app:typeface="font_futura_regular"
+                tools:text="Video description text here. We are rising up for our sisters, our mothers, our daughters and ourselves in one unifying act to show we are only going forward. We will not go back."
+                tools:visibility="visible"
+            />
+
+            <org.oneat1.android.util.TypefaceTextView
+                android:id="@+id/watch_description_ellipsis"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:text="...View More"
+                android:textColor="@color/darkGray"
+                android:textSize="14sp"
+                android:visibility="gone"
+                app:typeface="font_futura_regular"
+                tools:visibility="visible"
+            />
+
+            <com.balysv.materialripple.MaterialRippleLayout
+                android:id="@+id/watch_action_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:mrl_rippleOverlay="true"
+            >
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                >
+                    <org.oneat1.android.util.TypefaceTextView
+                        android:id="@+id/watch_action_button_unstarted"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:background="@color/darkBlue"
+                        android:gravity="center"
+                        android:text="@string/video_action_incomplete"
+                        android:textColor="@android:color/white"
+                        android:visibility="visible"
+                    />
+
+                    <org.oneat1.android.util.TypefaceTextView
+                        android:id="@+id/watch_action_button_completed"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:background="@color/action_completed"
+                        android:gravity="center"
+                        android:text="@string/video_action_completed"
+                        android:textColor="@android:color/white"
+                        android:visibility="invisible"
+                    />
+                </FrameLayout>
+            </com.balysv.materialripple.MaterialRippleLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="21dp"
+                android:background="@color/gray"
+            />
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardElevation="4dp"
+            >
+
+                <LinearLayout android:layout_width="match_parent"
+                              android:layout_height="match_parent"
+                              android:orientation="vertical">
+
+
+                    <FrameLayout android:layout_width="match_parent"
+                                 android:layout_height="wrap_content"
+                                 android:paddingLeft="20dp"
+                                 android:paddingRight="20dp"
+                                 android:paddingTop="10dp">
+
+                        <org.oneat1.android.util.TypefaceTextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="left"
+                            android:text="More Actions To Take"
+                            android:textAllCaps="true"
+                            android:textColor="@color/cobalt"
+                            android:textSize="12sp"
+                            app:typeface="font_helvetica_bold"
+                        />
+
+                        <org.oneat1.android.util.TypefaceTextView
+                            android:id="@+id/playlist_num_completed"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right"
+                            android:textAllCaps="true"
+                            android:textColor="@color/cobalt"
+                            android:textSize="12sp"
+                            app:typeface="font_helvetica_bold"
+                            tools:text="1/5 Completed"
+                        />
+
+                    </FrameLayout>
+
+                    <View android:layout_width="match_parent"
+                          android:layout_height="1dp"
+                          android:layout_marginTop="12dp"
+                          android:background="@color/gray"/>
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/watch_playlist"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:nestedScrollingEnabled="false"
+                        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                    />
+
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+
+        </LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
+
+
+</LinearLayout>

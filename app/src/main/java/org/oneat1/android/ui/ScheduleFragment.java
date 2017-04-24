@@ -108,7 +108,7 @@ public class ScheduleFragment extends Fragment {
     }
 
     private static Uri getFacebookURI(Context context) {
-        return getLaunchUri(context, "com.facebook.katana", "fb://page/1867705966792928", "https://www.facebook.com/oneatone");
+        return getLaunchUri(context, "com.facebook.katana", "fb://page/1867705966792928", "https://www.facebook.com/1867705966792928");
     }
 
     private static Uri getInstagramURI(Context context) {

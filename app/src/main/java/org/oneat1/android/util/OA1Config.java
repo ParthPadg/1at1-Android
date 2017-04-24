@@ -20,7 +20,7 @@ public class OA1Config {
     private final static Logger LOG = LoggerFactory.getLogger(OA1Config.class);
     private static final String CONFIG_FILENAME = "config.properties";
     private static final String PROPERTY_YOUTUBE = "YOUTUBE_API_KEY";
-    private static final String PROPERTY_TWITTER_KEY= "TWITTER_KEY";
+    private static final String PROPERTY_TWITTER_KEY = "TWITTER_KEY";
     private static final String PROPERTY_TWITTER_SECRET = "TWITTER_SECRET";
 
     private static OA1Config sInstance;

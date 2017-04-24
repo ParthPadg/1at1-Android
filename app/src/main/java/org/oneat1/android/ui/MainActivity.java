@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
                 case 0:
                     return ScheduleFragment.newInstance();
                 case 1:
-                    return WatchVideoFragment.createInstance();
+                    return VideoPlaylistFragment.createInstance();
                 case 2:
                     return new TweetListFragment();
                 default:

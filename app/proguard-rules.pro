@@ -59,3 +59,6 @@
 -keep class ch.qos.logback.classic.Logger.** {*;}
 -keep class ch.qos.logback.classic.LoggerContext.** {*;}
 -keep class ch.qos.logback.classic.LogcatAppender.** {*;}
+
+#Glide
+-keep class com.bumptech.glide.integration.okhttp3.OkHttpGlideModule
